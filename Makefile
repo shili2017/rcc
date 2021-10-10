@@ -74,7 +74,7 @@ debug-run: build
 		-s -S
 
 debug-gdb: build
-	@$(GDB) $(KERNEL_ELF)
+	@$(GDB) $(KERNEL_ELF) -ex 'target remote localhost:1234'
 
 clean:
 	-rm -rf $(BUILD_DIR)
