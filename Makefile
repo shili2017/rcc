@@ -1,9 +1,9 @@
 # Toolchain
-ARCH = riscv64-linux-gnu
+ARCH = riscv64-unknown-elf
 CC = $(ARCH)-gcc
 AS = $(ARCH)-gcc
 LD = $(ARCH)-ld
-GDB = $(ARCH)-gdb
+GDB = gdb-multiarch
 OBJDUMP = $(ARCH)-objdump
 OBJCOPY = $(ARCH)-objcopy
 
@@ -44,9 +44,9 @@ default: build
 build: $(KERNEL_ELF)
 
 $(KERNEL_ELF): $(OBJ)
-	$(LD) $(LDFLAGS) $^ -o $@
-	$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
-	$(OBJDUMP) $(KERNEL_ELF) -d > $(KERNEL_DISASM)
+	@$(LD) $(LDFLAGS) $^ -o $@
+	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
+	@$(OBJDUMP) $(KERNEL_ELF) -d > $(KERNEL_DISASM)
 
 # Compile: a single `.c` -> `.o` (gcc)
 $(DST_DIR)/%.o: %.c
