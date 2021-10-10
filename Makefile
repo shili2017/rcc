@@ -78,4 +78,4 @@ debug-gdb: build
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: default build run clean
+.PHONY: default build run debug-run debug-gdb clean
