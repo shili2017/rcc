@@ -27,5 +27,5 @@ void console_getchar() {
 
 void shutdown() {
   sbi_call(SBI_SHUTDOWN, 0, 0, 0);
-  panic("Shutdown now...");
+  panic("It should shutdown!\n");
 }
