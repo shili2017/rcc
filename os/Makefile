@@ -9,7 +9,7 @@ OBJCOPY = $(ARCH)-objcopy
 
 # Board
 SBI = rustsbi
-BOOTLOADER = bootloader/$(SBI)-qemu.bin
+BOOTLOADER = ../bootloader/$(SBI)-qemu.bin
 
 # Directories
 WORK_DIR = $(shell pwd)
