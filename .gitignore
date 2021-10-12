@@ -1,2 +1,3 @@
 build/
 .vscode/
+os/src/link_app.S

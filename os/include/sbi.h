@@ -9,4 +9,4 @@ void console_putchar(char c);
 void console_getchar();
 void shutdown();
 
-#endif  // _SBI_H_
+#endif // _SBI_H_

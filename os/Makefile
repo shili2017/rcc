@@ -14,11 +14,11 @@ BOOTLOADER = ../bootloader/$(SBI)-qemu.bin
 # Directories
 WORK_DIR = $(shell pwd)
 BUILD_DIR = $(WORK_DIR)/build
-DST_DIR = $(WORK_DIR)/build/$(ARCH)
+DST_DIR = $(BUILD_DIR)/$(ARCH)
 $(shell mkdir -p $(DST_DIR))
 
 # Source
-SRC = $(wildcard src/*.c src/*.S)
+SRC = $(wildcard src/*.c src/*.S src/*/*.c src/*/*.S)
 OBJ = $(addprefix $(DST_DIR)/, $(addsuffix .o, $(basename $(SRC))))
 LINKER_SCRIPT = $(WORK_DIR)/src/linker.ld
 
@@ -48,6 +48,7 @@ KERNEL_ENTRY_PA = 0x80200000
 default: build
 
 build: build-lib $(KERNEL_ELF)
+	@
 
 build-lib:
 	cd $(LIB_DIR) && $(MAKE)
@@ -87,6 +88,8 @@ debug-gdb: build
 
 clean:
 	-rm -rf $(BUILD_DIR)
+
+clean-all: clean
 	cd $(LIB_DIR) && $(MAKE) clean
 
-.PHONY: default build run debug-run debug-gdb clean
+.PHONY: default build run debug-run debug-gdb clean clean-all
