@@ -48,12 +48,12 @@ KERNEL_ENTRY_PA = 0x80200000
 default: build
 
 build: build-lib $(KERNEL_ELF)
-	@
 
 build-lib:
 	cd $(LIB_DIR) && $(MAKE)
 
 $(KERNEL_ELF): $(OBJ)
+	python3 ./build.py
 	$(LD) $(LDFLAGS) $^ $(LIB) -o $@
 	$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
 	$(OBJDUMP) $(KERNEL_ELF) -d > $(KERNEL_DISASM)
