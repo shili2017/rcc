@@ -8,7 +8,7 @@ AR = $(ARCH)-ar
 # Directories
 WORK_DIR = $(shell pwd)
 BUILD_DIR = $(WORK_DIR)/build
-DST_DIR = $(WORK_DIR)/build/$(ARCH)
+DST_DIR = $(BUILD_DIR)/$(ARCH)
 $(shell mkdir -p $(DST_DIR))
 
 # Source
