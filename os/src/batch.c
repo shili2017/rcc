@@ -1,4 +1,5 @@
 #include "log.h"
+#include "string.h"
 #include "trap.h"
 
 #define KERNEL_STACK_SIZE (4096 * 2)
@@ -84,10 +85,7 @@ void app_manager_load_app(uint64_t app_id) {
   uint8_t *app_dst = (uint8_t *)APP_BASE_ADDRESS;
   uint64_t app_len = app_start[app_id + 1] - app_start[app_id];
 
-  // todo: impl stdlib and use memcpy
-  while (app_len--) {
-    *app_dst++ = *app_src++;
-  }
+  memcpy(app_dst, app_src, app_len);
 }
 
 uint64_t app_manager_get_current_app() { return APP_MANAGER.current_app; }
