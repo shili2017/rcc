@@ -13,12 +13,15 @@ BOOTLOADER = ../bootloader/$(SBI)-qemu.bin
 
 # Directories
 WORK_DIR = $(shell pwd)
+USER_DIR = $(WORK_DIR)/../user
 BUILD_DIR = $(WORK_DIR)/build
 DST_DIR = $(BUILD_DIR)/$(ARCH)
 $(shell mkdir -p $(DST_DIR))
 
 # Source
 SRC = $(wildcard src/*.c src/*.S src/*/*.c src/*/*.S)
+LINK_APP_S = src/link_app.S
+SRC += $(LINK_APP_S)
 OBJ = $(addprefix $(DST_DIR)/, $(addsuffix .o, $(basename $(SRC))))
 LINKER_SCRIPT = $(WORK_DIR)/src/linker.ld
 
@@ -47,16 +50,21 @@ KERNEL_ENTRY_PA = 0x80200000
 
 default: build
 
-build: build-lib $(KERNEL_ELF)
+build: build-lib build-user $(KERNEL_ELF)
 
 build-lib:
 	cd $(LIB_DIR) && $(MAKE)
 
+build-user:
+	cd $(USER_DIR) && $(MAKE)
+
 $(KERNEL_ELF): $(OBJ)
-	python3 ./build.py
 	$(LD) $(LDFLAGS) $^ $(LIB) -o $@
 	$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
 	$(OBJDUMP) $(KERNEL_ELF) -d > $(KERNEL_DISASM)
+
+$(LINK_APP_S):
+	python3 ./build.py
 
 # Compile: a single `.c` -> `.o` (gcc)
 $(DST_DIR)/%.o: %.c
@@ -88,8 +96,10 @@ debug-gdb: build
 
 clean:
 	-rm -rf $(BUILD_DIR)
+	-rm src/link_app.S
 
 clean-all: clean
 	cd $(LIB_DIR) && $(MAKE) clean
+	cd $(USER_DIR) && $(MAKE) clean
 
 .PHONY: default build run debug-run debug-gdb clean clean-all
