@@ -117,11 +117,6 @@
 #include <float.h>
 #endif
 
-// putchar function to console
-inline void _putchar(char character) {
-  console_putchar(character);
-}
-
 // output function type
 typedef void (*out_fct_type)(char character, void* buffer, size_t idx, size_t maxlen);
 

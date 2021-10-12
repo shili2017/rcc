@@ -34,7 +34,6 @@
 
 #include <stdarg.h>
 #include <stddef.h>
-#include "sbi.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +45,7 @@ extern "C" {
  * This function is declared here only. You have to write your custom implementation somewhere
  * \param character Character to output
  */
-void _putchar(char character);
+extern void _putchar(char character);
 
 
 /**

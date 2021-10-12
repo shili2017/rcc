@@ -2,6 +2,11 @@
 #include "printf.h"
 #include "log.h"
 
+// putchar function to console
+inline void _putchar(char character) {
+  console_putchar(character);
+}
+
 extern char stext, etext;
 extern char srodata, erodata;
 extern char sdata, edata;
