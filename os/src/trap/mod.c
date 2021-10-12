@@ -1,5 +1,6 @@
 #include "batch.h"
 #include "log.h"
+#include "syscall.h"
 #include "trap.h"
 
 extern void __alltraps();
@@ -16,10 +17,11 @@ TrapContext *trap_handler(TrapContext *c) {
                "csrr %1, stval\n"
                : "=r"(scause), "=r"(stval));
 
-  switch (scause) {
+  switch (scause & ~(1L << 63)) {
   case UserEnvCall:
     c->sepc += 4;
     c->x[10] = syscall(c->x[17], c->x[10], c->x[11], c->x[12]);
+    break;
   case StoreFault:
   case StorePageFault:
     info("PageFault in application, core dumped.\n");
