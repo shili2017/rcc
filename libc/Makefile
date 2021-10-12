@@ -15,17 +15,15 @@ $(shell mkdir -p $(DST_DIR))
 SRC = $(wildcard src/*.c src/*.S)
 OBJ = $(addprefix $(DST_DIR)/, $(addsuffix .o, $(basename $(SRC))))
 
-# Library (libc)
-LIB_DIR = $(realpath ../libc)
-LIB_BUILD_DIR = $(LIB_DIR)/build
-LIB_NAME = c
-LIB = $(LIB_BUILD_DIR)/lib$(LIB_NAME).a
-
 # Flags
 INCFLAGS = -I$(WORK_DIR)/include
 COMMON_FLAGS = -fno-pic -mcmodel=medany
 CFLAGS = $(COMMON_FLAGS) -static -O2 -MMD -Wall -ggdb $(INCFLAGS) \
          -fno-builtin -fno-stack-protector -ffreestanding -Wno-main
+
+# Build target
+LIB_NAME = c
+LIB = $(BUILD_DIR)/lib$(LIB_NAME).a
 
 default: $(LIB)
 
