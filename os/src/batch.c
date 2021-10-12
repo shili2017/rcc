@@ -66,8 +66,10 @@ void app_manager_print_app_info() {
 
 void app_manager_load_app(uint64_t app_id) {
   if (app_id >= APP_MANAGER.num_app) {
-    panic("All applications completed!\n");
+    info("All applications completed!\n");
+    shutdown();
   }
+
   info("Loading app_%lld\n", app_id);
 
   // clear icache
