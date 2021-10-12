@@ -1,8 +1,8 @@
 #include <stdint.h>
 
 #include "log.h"
-#include "printf.h"
 #include "sbi.h"
+#include "stdio.h"
 
 static inline int64_t sbi_call(uint64_t id, uint64_t a0, uint64_t a1,
                                uint64_t a2) {

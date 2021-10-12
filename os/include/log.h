@@ -1,8 +1,8 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
-#include "printf.h"
 #include "sbi.h"
+#include "stdio.h"
 
 #define LOG_ERROR 0
 #define LOG_WARN 1

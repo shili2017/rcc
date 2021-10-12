@@ -1,8 +1,7 @@
 #include <stdint.h>
 
-#include "fs.h"
 #include "log.h"
-#include "printf.h"
+#include "stdio.h"
 
 int64_t sys_write(uint64_t fd, uint8_t *buf, uint64_t len) {
   switch (fd) {

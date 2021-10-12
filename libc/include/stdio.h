@@ -30,8 +30,12 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef _PRINTF_H_
-#define _PRINTF_H_
+#ifndef _STDIO_H_
+#define _STDIO_H_
+
+#define FD_STDIN 0
+#define FD_STDOUT 1
+#define FD_STDERR 2
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -113,4 +117,4 @@ int fctprintf(void (*out)(char character, void *arg), void *arg,
 }
 #endif
 
-#endif // _PRINTF_H_
+#endif // _STDIO_H_

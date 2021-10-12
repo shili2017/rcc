@@ -2,8 +2,8 @@
 
 #include "batch.h"
 #include "log.h"
-#include "printf.h"
 #include "sbi.h"
+#include "stdio.h"
 #include "trap.h"
 
 // putchar function to console
