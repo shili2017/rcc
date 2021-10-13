@@ -9,26 +9,35 @@ OBJCOPY = $(ARCH)-objcopy
 
 # Board
 SBI = rustsbi
-BOOTLOADER = bootloader/$(SBI)-qemu.bin
+BOOTLOADER = ../bootloader/$(SBI)-qemu.bin
 
 # Directories
 WORK_DIR = $(shell pwd)
+USER_DIR = $(WORK_DIR)/../user
 BUILD_DIR = $(WORK_DIR)/build
-DST_DIR = $(WORK_DIR)/build/$(ARCH)
+DST_DIR = $(BUILD_DIR)/$(ARCH)
 $(shell mkdir -p $(DST_DIR))
 
 # Source
-SRC = $(wildcard src/*.c src/*.S)
+SRC = $(wildcard src/*.c src/*.S src/*/*.c src/*/*.S)
+LINK_APP_S = src/link_app.S
+SRC += $(LINK_APP_S)
 OBJ = $(addprefix $(DST_DIR)/, $(addsuffix .o, $(basename $(SRC))))
 LINKER_SCRIPT = $(WORK_DIR)/src/linker.ld
 
+# Library (libc)
+LIB_DIR = $(realpath ../libc)
+LIB_BUILD_DIR = $(LIB_DIR)/build
+LIB_NAME = kernelc
+LIB = $(LIB_BUILD_DIR)/lib$(LIB_NAME).a
+
 # Flags
-INCFLAGS = -I$(WORK_DIR)/include
+INCFLAGS = -I$(WORK_DIR)/include -I$(LIB_DIR)/include
 COMMON_FLAGS = -fno-pic -mcmodel=medany
 CFLAGS = $(COMMON_FLAGS) -static -O2 -MMD -Wall -ggdb $(INCFLAGS) \
          -fno-builtin -fno-stack-protector -ffreestanding -Wno-main
 ASFLAGS = $(COMMON_FLAGS) -O0 -MMD $(INCFLAGS)
-LDFLAGS = -melf64lriscv -T $(LINKER_SCRIPT) -g
+LDFLAGS = -melf64lriscv -T $(LINKER_SCRIPT) -L$(LIB_BUILD_DIR) -l$(LIB_NAME) -g
 
 # Build target
 KERNEL_NAME = rcc
@@ -41,22 +50,31 @@ KERNEL_ENTRY_PA = 0x80200000
 
 default: build
 
-build: $(KERNEL_ELF)
+build: build-lib build-user $(KERNEL_ELF)
+
+build-lib:
+	cd $(LIB_DIR) && $(MAKE) KERNEL=1
+
+build-user:
+	cd $(USER_DIR) && $(MAKE)
 
 $(KERNEL_ELF): $(OBJ)
-	@$(LD) $(LDFLAGS) $^ -o $@
-	@$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
-	@$(OBJDUMP) $(KERNEL_ELF) -d > $(KERNEL_DISASM)
+	$(LD) $(LDFLAGS) $^ $(LIB) -o $@
+	$(OBJCOPY) $(KERNEL_ELF) --strip-all -O binary $(KERNEL_BIN)
+	$(OBJDUMP) $(KERNEL_ELF) -d > $(KERNEL_DISASM)
+
+$(LINK_APP_S):
+	python3 ./build.py
 
 # Compile: a single `.c` -> `.o` (gcc)
 $(DST_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -c -o $@ $(realpath $<)
+	$(CC) $(CFLAGS) -c -o $@ $(realpath $<)
 
 # Compile: a single `.S` -> `.o` (gcc)
 $(DST_DIR)/%.o: %.S
 	@mkdir -p $(dir $@)
-	@$(AS) $(ASFLAGS) -c -o $@ $(realpath $<)
+	$(AS) $(ASFLAGS) -c -o $@ $(realpath $<)
 
 run: build
 	@qemu-system-riscv64 \
@@ -74,9 +92,14 @@ debug-run: build
 		-s -S
 
 debug-gdb: build
-	@$(GDB) $(KERNEL_ELF) -ex 'target remote localhost:1234'
+	$(GDB) $(KERNEL_ELF) -ex 'target remote localhost:1234'
 
 clean:
 	-rm -rf $(BUILD_DIR)
+	-rm src/link_app.S
 
-.PHONY: default build run debug-run debug-gdb clean
+clean-all: clean
+	cd $(LIB_DIR) && $(MAKE) clean
+	cd $(USER_DIR) && $(MAKE) clean
+
+.PHONY: default build run debug-run debug-gdb clean clean-all
