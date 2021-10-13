@@ -102,4 +102,4 @@ clean-all: clean
 	cd $(LIB_DIR) && $(MAKE) clean
 	cd $(USER_DIR) && $(MAKE) clean
 
-.PHONY: default build run debug-run debug-gdb clean clean-all
+.PHONY: default build build-lib build-user run debug-run debug-gdb clean clean-all

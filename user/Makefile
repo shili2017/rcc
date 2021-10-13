@@ -44,12 +44,6 @@ LDFLAGS = -melf64lriscv -T $(APPS_LINKER_SCRIPT) \
 
 default: build
 
-see:
-	@echo $(APPS)
-	@echo $(APPS_OBJ)
-	@echo $(APPS_ELF)
-	@echo $(BUILD_DIR)/%.elf
-
 build: build-lib $(USER_LIB)
 	python3 build.py
 
@@ -77,4 +71,4 @@ $(DST_DIR)/%.o: %.S
 clean:
 	-rm -rf $(BUILD_DIR)
 
-.PHONY: clean
+.PHONY: default build build-lib clean
