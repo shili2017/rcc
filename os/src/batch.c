@@ -3,7 +3,7 @@
 #include "trap.h"
 
 #define KERNEL_STACK_SIZE (4096 * 2)
-#define USER_STACK_SIZE (4096 * 2)
+#define USER_STACK_SIZE (4096 * 1)
 #define MAX_APP_NUM 16
 #define APP_BASE_ADDRESS 0x80400000
 #define APP_SIZE_LIMIT 0x20000
@@ -94,11 +94,18 @@ uint64_t app_manager_get_current_app() { return APP_MANAGER.current_app; }
 
 void app_manager_move_to_next_app() { APP_MANAGER.current_app += 1; }
 
+int check_address_range(uint64_t start, uint64_t end) {
+  return ((start >= APP_BASE_ADDRESS) &&
+          (end <= (APP_BASE_ADDRESS + APP_SIZE_LIMIT))) ||
+         ((start >= (uint64_t)USER_STACK.data) &&
+          (end <= (uint64_t)(USER_STACK.data + USER_STACK_SIZE)));
+}
+
 void batch_init() {
-  info("KERNEL_STACK: [0x%llx, 0x%llx)\n", (uint64_t)KERNEL_STACK.data,
-       (uint64_t)(KERNEL_STACK.data + KERNEL_STACK_SIZE));
-  info("USER_STACK:   [0x%llx, 0x%llx)\n", (uint64_t)USER_STACK.data,
-       (uint64_t)(USER_STACK.data + USER_STACK_SIZE));
+  debug("KERNEL_STACK: [0x%llx, 0x%llx)\n", (uint64_t)KERNEL_STACK.data,
+        (uint64_t)(KERNEL_STACK.data + KERNEL_STACK_SIZE));
+  debug("USER_STACK:   [0x%llx, 0x%llx)\n", (uint64_t)USER_STACK.data,
+        (uint64_t)(USER_STACK.data + USER_STACK_SIZE));
 
   app_manager_init();
   app_manager_print_app_info();
