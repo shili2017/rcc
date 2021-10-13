@@ -22,3 +22,7 @@ int64_t write(uint64_t fd, char *buf, uint64_t len) {
 int64_t exit(int exit_code) {
   return syscall(SYSCALL_EXIT, (uint64_t)exit_code, 0, 0);
 }
+
+int64_t yield() { return syscall(SYSCALL_YIELD, 0, 0, 0); }
+
+int64_t get_time() { return syscall(SYSCALL_GET_TIME, 0, 0, 0); }
