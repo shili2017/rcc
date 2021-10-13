@@ -53,7 +53,7 @@ build-lib:
 $(USER_LIB): $(USER_LIB_OBJ)
 	$(AR) cr $@ $^
 
-$(BUILD_DIR)/%.elf: $(DST_DIR)/$(APPS_DIR)/%.o build-lib $(USER_LIB) $(DST_DIR)/$(APPS_DIR)/%.o
+$(BUILD_DIR)/%.elf: $(DST_DIR)/$(APPS_DIR)/%.o $(DST_DIR)/$(APPS_DIR)/%.o
 	$(LD) $(LDFLAGS) $< $(LIB) -o $@
 	$(OBJCOPY) $@ --strip-all -O binary $(basename $@).bin
 	$(OBJDUMP) $@ -d > $(basename $@).txt

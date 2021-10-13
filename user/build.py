@@ -4,7 +4,7 @@ base_address = 0x80400000
 step = 0x20000
 linker = 'src/linker.ld'
 
-build_dir = '/home/lishi/rcc/user/build/'
+build_dir = os.path.join(os.getcwd(), 'build/')
 
 app_id = 0
 apps = os.listdir('src/bin')
