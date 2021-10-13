@@ -12,7 +12,7 @@ int64_t sys_write(uint64_t fd, char *buf, uint64_t len) {
     }
     return (int64_t)len;
   default:
-    panic("Unsupported fd in sys_write!\n");
+    info("Unsupported fd %lld in sys_write!\n", fd);
     break;
   }
   return -1;

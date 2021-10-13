@@ -21,6 +21,11 @@ void clear_bss() {
 int main() {
   clear_bss();
   info("Hello, world!\n");
+  info(".text      [0x%llx, 0x%llx)\n", &stext, &etext);
+  info(".rodata    [0x%llx, 0x%llx)\n", &srodata, &erodata);
+  info(".data      [0x%llx, 0x%llx)\n", &sdata, &edata);
+  info("boot_stack [0x%llx, 0x%llx)\n", &boot_stack, &boot_stack_top);
+  info(".bss       [0x%llx, 0x%llx)\n", &sbss, &ebss);
 
   trap_init();
   batch_init();

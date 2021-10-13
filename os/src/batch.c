@@ -16,8 +16,8 @@ struct UserStack {
   uint8_t data[USER_STACK_SIZE];
 };
 
-static struct KernelStack KERNEL_STACK;
-static struct UserStack USER_STACK;
+static struct KernelStack KERNEL_STACK __attribute__((aligned(4096)));
+static struct UserStack USER_STACK __attribute__((aligned(4096)));
 
 uint64_t kernel_stack_get_sp() {
   return (uint64_t)KERNEL_STACK.data + KERNEL_STACK_SIZE;
@@ -60,7 +60,7 @@ void app_manager_print_app_info() {
 
   uint64_t *app_start = APP_MANAGER.app_start;
   for (uint64_t i = 0; i < APP_MANAGER.num_app; i++) {
-    info("app_%lld [%llx, %llx)\n", i, app_start[i], app_start[i + 1]);
+    info("app_%lld [0x%llx, 0x%llx)\n", i, app_start[i], app_start[i + 1]);
   }
 }
 
@@ -95,6 +95,11 @@ uint64_t app_manager_get_current_app() { return APP_MANAGER.current_app; }
 void app_manager_move_to_next_app() { APP_MANAGER.current_app += 1; }
 
 void batch_init() {
+  info("KERNEL_STACK: [0x%llx, 0x%llx)\n", (uint64_t)KERNEL_STACK.data,
+       (uint64_t)(KERNEL_STACK.data + KERNEL_STACK_SIZE));
+  info("USER_STACK:   [0x%llx, 0x%llx)\n", (uint64_t)USER_STACK.data,
+       (uint64_t)(USER_STACK.data + USER_STACK_SIZE));
+
   app_manager_init();
   app_manager_print_app_info();
 }

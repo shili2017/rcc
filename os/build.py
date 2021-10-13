@@ -1,13 +1,18 @@
 from os import listdir
 from os.path import isfile, join
 
+# Default
+APP_PATH = '../user/src/bin'
 TARGET_PATH = '../user/build/'
+
+# Test
+# APP_PATH = '../../rCore_tutorial_tests/user/build/bin/'
+# TARGET_PATH = '../../rCore_tutorial_tests/user/build/bin/'
 
 if __name__ == '__main__':
   f = open('src/link_app.S', 'w')
 
-  app_path = '../user/src/bin'
-  apps = [x.split('.')[0] for x in listdir(app_path) if isfile(join(app_path, x))]
+  apps = [x.split('.')[0] for x in listdir(APP_PATH) if isfile(join(APP_PATH, x))]
   apps.sort()
 
   f.write(
