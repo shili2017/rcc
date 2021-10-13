@@ -115,6 +115,12 @@
 #include <float.h>
 #endif
 
+#ifdef __KERNEL__
+extern void console_putchar(char c);
+#else
+extern int64_t write(uint64_t fd, char *buf, uint64_t len);
+#endif
+
 // output function type
 typedef void (*out_fct_type)(char character, void *buffer, size_t idx,
                              size_t maxlen);
@@ -124,6 +130,15 @@ typedef struct {
   void (*fct)(char character, void *arg);
   void *arg;
 } out_fct_wrap_type;
+
+// putchar function to console
+inline void _putchar(char character) {
+#ifdef __KERNEL__
+  console_putchar(character);
+#else
+  write(FD_STDOUT, &character, 1);
+#endif
+}
 
 // internal buffer output
 static inline void _out_buffer(char character, void *buffer, size_t idx,
@@ -914,8 +929,14 @@ static int _vsnprintf(out_fct_type out, char *buffer, const size_t maxlen,
 int printf_(const char *format, ...) {
   va_list va;
   va_start(va, format);
+#ifdef __KERNEL__
   char buffer[1];
   const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+#else
+  static char buffer[1024] = {};
+  const int len = _vsnprintf(_out_buffer, buffer, (size_t)-1, format, va);
+  const int ret = write(FD_STDOUT, buffer, len);
+#endif
   va_end(va);
   return ret;
 }
@@ -937,8 +958,14 @@ int snprintf_(char *buffer, size_t count, const char *format, ...) {
 }
 
 int vprintf_(const char *format, va_list va) {
+#ifdef __KERNEL__
   char buffer[1];
   return _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+#else
+  static char buffer[1024] = {};
+  const int len = _vsnprintf(_out_buffer, buffer, (size_t)-1, format, va);
+  return write(FD_STDOUT, buffer, len);
+#endif
 }
 
 int vsnprintf_(char *buffer, size_t count, const char *format, va_list va) {

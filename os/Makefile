@@ -28,7 +28,7 @@ LINKER_SCRIPT = $(WORK_DIR)/src/linker.ld
 # Library (libc)
 LIB_DIR = $(realpath ../libc)
 LIB_BUILD_DIR = $(LIB_DIR)/build
-LIB_NAME = c
+LIB_NAME = kernelc
 LIB = $(LIB_BUILD_DIR)/lib$(LIB_NAME).a
 
 # Flags
@@ -53,7 +53,7 @@ default: build
 build: build-lib build-user $(KERNEL_ELF)
 
 build-lib:
-	cd $(LIB_DIR) && $(MAKE)
+	cd $(LIB_DIR) && $(MAKE) KERNEL=1
 
 build-user:
 	cd $(USER_DIR) && $(MAKE)

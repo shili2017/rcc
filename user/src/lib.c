@@ -3,11 +3,6 @@
 #include "stdio.h"
 #include "syscall.h"
 
-// putchar function to console
-inline void _putchar(char character) {
-  write(FD_STDOUT, (uint8_t *)&character, 1);
-}
-
 extern uint8_t start_bss, end_bss;
 
 void clear_bss() {

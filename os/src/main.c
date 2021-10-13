@@ -6,9 +6,6 @@
 #include "stdio.h"
 #include "trap.h"
 
-// putchar function to console
-inline void _putchar(char character) { console_putchar(character); }
-
 extern uint8_t stext, etext;
 extern uint8_t srodata, erodata;
 extern uint8_t sdata, edata;

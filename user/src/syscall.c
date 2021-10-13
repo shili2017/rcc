@@ -15,7 +15,7 @@ static inline int64_t syscall(uint64_t id, uint64_t a0, uint64_t a1,
   return ret;
 }
 
-int64_t write(uint64_t fd, uint8_t *buf, uint64_t len) {
+int64_t write(uint64_t fd, char *buf, uint64_t len) {
   return syscall(SYSCALL_WRITE, fd, (uint64_t)buf, len);
 }
 
