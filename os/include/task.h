@@ -42,5 +42,6 @@ void task_mark_current_suspended();
 void task_mark_current_exited();
 void task_suspend_current_and_run_next();
 void task_exit_current_and_run_next();
+uint64_t task_get_current_task();
 
 #endif // _TASK_H_

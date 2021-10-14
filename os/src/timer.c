@@ -4,17 +4,14 @@
 #include "sbi.h"
 #include "timer.h"
 
-#define TICKS_PER_SEC 100
-#define MSEC_PER_SEC 1000
-
 uint64_t timer_get_time() {
   uint64_t time;
   asm volatile("rdtime %0" : "=r"(time));
   return time;
 }
 
-uint64_t timer_get_time_ms() {
-  return timer_get_time() / (CLOCK_FREQ / MSEC_PER_SEC);
+uint64_t timer_get_time_us() {
+  return timer_get_time() / (CLOCK_FREQ / USEC_PER_SEC);
 }
 
 void timer_set_next_trigger() {

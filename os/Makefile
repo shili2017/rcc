@@ -48,6 +48,17 @@ KERNEL_DISASM = $(BUILD_DIR)/$(KERNEL_NAME).txt
 # Kernel entry
 KERNEL_ENTRY_PA = 0x80200000
 
+# Kernel log level
+LOG_LEVELS = ERROR WARN INFO DEBUG TRACE
+ifeq ($(LOG),)
+LOG = INFO
+else
+ifeq ($(filter $(LOG_LEVELS), $(LOG)), )
+  $(error Expected $$LOG in {$(LOG_LEVELS)}, Got "$(LOG)")
+endif
+endif
+CFLAGS += -DLOG_LEVEL=LOG_$(LOG)
+
 default: build
 
 build: build-lib build-user $(KERNEL_ELF)

@@ -58,16 +58,16 @@ void loader_load_apps() {
     size_t len = app_start[i + 1] - app_start[i];
     memcpy(dst, src, len);
 
-    info("App %d -> Text: [0x%llx, 0x%llx) KernelStack: [0x%llx, 0x%llx) "
-         "UserStack: [0x%llx, 0x%llx)\n",
-         i, base_i, base_i + len, KERNEL_STACK[i].data,
-         KERNEL_STACK[i].data + KERNEL_STACK_SIZE, USER_STACK[i].data,
-         USER_STACK[i].data + USER_STACK_SIZE);
+    debug("App %d -> Text: [0x%llx, 0x%llx) KernelStack: [0x%llx, 0x%llx) "
+          "UserStack: [0x%llx, 0x%llx)\n",
+          i, base_i, base_i + len, KERNEL_STACK[i].data,
+          KERNEL_STACK[i].data + KERNEL_STACK_SIZE, USER_STACK[i].data,
+          USER_STACK[i].data + USER_STACK_SIZE);
   }
 }
 
 TaskContext *loader_init_app_cx(uint64_t app_id) {
-  TrapContext *trap_cx = app_init_context(
+  app_init_context(
       loader_get_base_i(app_id), user_stack_get_sp(app_id),
       (TrapContext *)(kernel_stack_get_sp(app_id) - sizeof(TrapContext)));
 
@@ -75,7 +75,14 @@ TaskContext *loader_init_app_cx(uint64_t app_id) {
       (TaskContext *)(kernel_stack_get_sp(app_id) - sizeof(TrapContext) -
                       sizeof(TaskContext)));
 
-  info("App %d -> trap_cx_ptr = %llx task_cx_ptr = %llx\n", app_id, trap_cx,
-       task_cx);
   return task_cx;
+}
+
+int check_address_range(uint64_t start, uint64_t end) {
+  uint64_t current_app = task_get_current_task();
+  uint64_t app_base = loader_get_base_i(current_app);
+  uint64_t user_stack_base = (uint64_t)USER_STACK[current_app].data;
+  return ((start >= app_base) && (end <= (app_base + APP_SIZE_LIMIT))) ||
+         ((start >= user_stack_base) &&
+          (end <= user_stack_base + USER_STACK_SIZE));
 }

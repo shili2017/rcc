@@ -1,4 +1,5 @@
 #include "syscall.h"
+#include "time.h"
 
 static inline int64_t syscall(uint64_t id, uint64_t a0, uint64_t a1,
                               uint64_t a2) {
@@ -25,4 +26,10 @@ int64_t exit(int exit_code) {
 
 int64_t yield() { return syscall(SYSCALL_YIELD, 0, 0, 0); }
 
-int64_t get_time() { return syscall(SYSCALL_GET_TIME, 0, 0, 0); }
+int64_t get_time() {
+  TimeVal time;
+  if (syscall(SYSCALL_GET_TIME, (uint64_t)&time, 0, 0) == 0) {
+    return (int64_t)((time.sec & 0xffff) * 1000 + time.usec / 1000);
+  }
+  return -1;
+}

@@ -12,9 +12,6 @@ void task_manager_init() {
   for (unsigned i = 0; i < TASK_MANAGER.num_app; i++) {
     TASK_MANAGER.tasks[i].task_cx_ptr = loader_init_app_cx(i);
     TASK_MANAGER.tasks[i].task_status = TaskStatusReady;
-    info("App %d -> TaskControlBlock: [0x%llx, 0x%llx)\n", i,
-         &(TASK_MANAGER.tasks[i]),
-         &(TASK_MANAGER.tasks[i]) + sizeof(TaskControlBlock));
   }
   TASK_MANAGER.current_task = 0;
 }
@@ -51,6 +48,7 @@ int64_t task_manager_find_next_task() {
 
 void task_manager_run_next_task() {
   int64_t next = task_manager_find_next_task();
+  debug("Next = %lld\n", next);
   if (next >= 0) {
     uint64_t current = TASK_MANAGER.current_task;
     TASK_MANAGER.tasks[next].task_status = TaskStatusRunning;
@@ -64,6 +62,8 @@ void task_manager_run_next_task() {
     panic("All applications completed!\n");
   }
 }
+
+uint64_t task_manager_get_current_task() { return TASK_MANAGER.current_task; }
 
 void task_init() { task_manager_init(); }
 
@@ -84,3 +84,5 @@ void task_exit_current_and_run_next() {
   task_mark_current_exited();
   task_run_next_task();
 }
+
+uint64_t task_get_current_task() { return task_manager_get_current_task(); }

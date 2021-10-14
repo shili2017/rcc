@@ -17,7 +17,17 @@ int64_t sys_yield() {
   return 0;
 }
 
-int64_t sys_get_time() {
-  int64_t time_ms = timer_get_time_ms();
-  return time_ms;
+int64_t sys_set_priority(int64_t prio) {
+  if (prio < 2) {
+    return -1;
+  }
+  // todo: implement this function
+  return prio;
+}
+
+int64_t sys_get_time(TimeVal *ts, int64_t tz) {
+  int64_t time_us = timer_get_time_us();
+  ts->sec = time_us / USEC_PER_SEC;
+  ts->usec = time_us % USEC_PER_SEC;
+  return 0;
 }
