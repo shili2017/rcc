@@ -5,13 +5,16 @@
 extern void __switch(const TaskContext **current_task_cx_ptr2,
                      const TaskContext **next_task_cx_ptr2);
 
-static TaskManager TASK_MANAGER;
+TaskManager TASK_MANAGER;
 
 void task_manager_init() {
   TASK_MANAGER.num_app = loader_get_num_app();
   for (unsigned i = 0; i < TASK_MANAGER.num_app; i++) {
     TASK_MANAGER.tasks[i].task_cx_ptr = loader_init_app_cx(i);
     TASK_MANAGER.tasks[i].task_status = TaskStatusReady;
+    info("App %d -> TaskControlBlock: [0x%llx, 0x%llx)\n", i,
+         &(TASK_MANAGER.tasks[i]),
+         &(TASK_MANAGER.tasks[i]) + sizeof(TaskControlBlock));
   }
   TASK_MANAGER.current_task = 0;
 }
@@ -21,8 +24,6 @@ void task_manager_run_first_task() {
   const TaskContext **next_task_cx_ptr2 =
       get_task_cx_ptr2(&(TASK_MANAGER.tasks[0]));
   uint64_t _unused = 0;
-  info("next_task_cx_ptr2 = 0x%llx, next_task_cx_ptr = 0x%llx\n",
-       next_task_cx_ptr2, *next_task_cx_ptr2);
   __switch((const TaskContext **)&_unused, next_task_cx_ptr2);
 }
 

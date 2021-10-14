@@ -25,9 +25,9 @@ struct TaskControlBlock {
 typedef struct TaskControlBlock TaskControlBlock;
 
 struct TaskManager {
-  uint64_t num_app;
   TaskControlBlock tasks[MAX_APP_NUM];
   uint64_t current_task;
+  uint64_t num_app;
 };
 
 typedef struct TaskManager TaskManager;

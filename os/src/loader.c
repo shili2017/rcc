@@ -19,16 +19,6 @@ uint64_t kernel_stack_get_sp(uint64_t app_id) {
   return (uint64_t)KERNEL_STACK[app_id].data + KERNEL_STACK_SIZE;
 }
 
-TaskContext *kernel_stack_push_context(TrapContext *trap_cx,
-                                       TaskContext *task_cx, uint64_t app_id) {
-  TrapContext *trap_cx_ptr =
-      (TrapContext *)(kernel_stack_get_sp(app_id) - sizeof(TrapContext));
-  *trap_cx_ptr = *trap_cx;
-  TaskContext *task_cx_ptr = (TaskContext *)(trap_cx_ptr - sizeof(TaskContext));
-  *task_cx_ptr = *task_cx;
-  return task_cx_ptr;
-}
-
 uint64_t user_stack_get_sp(uint64_t app_id) {
   return (uint64_t)USER_STACK[app_id].data + USER_STACK_SIZE;
 }
@@ -68,17 +58,24 @@ void loader_load_apps() {
     size_t len = app_start[i + 1] - app_start[i];
     memcpy(dst, src, len);
 
-    info("App %d -> [0x%llx, 0x%llx)\n", i, base_i, base_i + len);
+    info("App %d -> Text: [0x%llx, 0x%llx) KernelStack: [0x%llx, 0x%llx) "
+         "UserStack: [0x%llx, 0x%llx)\n",
+         i, base_i, base_i + len, KERNEL_STACK[i].data,
+         KERNEL_STACK[i].data + KERNEL_STACK_SIZE, USER_STACK[i].data,
+         USER_STACK[i].data + USER_STACK_SIZE);
   }
 }
 
 TaskContext *loader_init_app_cx(uint64_t app_id) {
-  return kernel_stack_push_context(
-      app_init_context(
-          loader_get_base_i(app_id), user_stack_get_sp(app_id),
-          (TrapContext *)(kernel_stack_get_sp(app_id) - sizeof(TrapContext))),
-      task_context_goto_restore((TaskContext *)(kernel_stack_get_sp(app_id) -
-                                                sizeof(TrapContext) -
-                                                sizeof(TaskContext))),
-      app_id);
+  TrapContext *trap_cx = app_init_context(
+      loader_get_base_i(app_id), user_stack_get_sp(app_id),
+      (TrapContext *)(kernel_stack_get_sp(app_id) - sizeof(TrapContext)));
+
+  TaskContext *task_cx = task_context_goto_restore(
+      (TaskContext *)(kernel_stack_get_sp(app_id) - sizeof(TrapContext) -
+                      sizeof(TaskContext)));
+
+  info("App %d -> trap_cx_ptr = %llx task_cx_ptr = %llx\n", app_id, trap_cx,
+       task_cx);
+  return task_cx;
 }

@@ -10,6 +10,17 @@ struct TrapContext {
 };
 typedef struct TrapContext TrapContext;
 
+// Interrupt
+
+#define UserSoft 0
+#define SupervisorSoft 1
+#define UserTimer 4
+#define SupervisorTimer 5
+#define UserExternal 8
+#define SupervisorExternal 9
+
+// Exception
+
 #define InstructionMisaligned 0
 #define InstructionFault 1
 #define IllegalInstruction 2
