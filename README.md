@@ -44,9 +44,34 @@ make debug-gdb
 
 ### Debug in VSCode
 
-Create `launch.json` under `.vscode` directory as follows.
+Create `tasks.json` and `launch.json` under `.vscode` directory as follows.
 
 ```json
+// tasks.json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "qemu debug-run",
+      "type": "shell",
+      "command": "echo Starting QEMU & cd ${workspaceFolder}/os && make debug-run",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^(Starting QEMU)",
+          "line": 1,
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^(Starting QEMU)",
+          "endsPattern": "^(Starting QEMU)"
+        }
+      }
+    }
+  ]
+}
+
+// launch.json
 {
   "version": "0.2.0",
   "configurations": [
@@ -63,6 +88,7 @@ Create `launch.json` under `.vscode` directory as follows.
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb-multiarch",
       "miDebuggerServerAddress": "localhost:1234",
+      "preLaunchTask": "qemu debug-run",
     }
   ]
 }
