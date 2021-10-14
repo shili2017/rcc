@@ -33,6 +33,8 @@ void main() {
 
   loader_load_apps();
 
+  task_init();
+
   trap_enable_timer_interrupt();
 
   timer_set_next_trigger();

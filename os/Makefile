@@ -34,7 +34,7 @@ LIB = $(LIB_BUILD_DIR)/lib$(LIB_NAME).a
 # Flags
 INCFLAGS = -I$(WORK_DIR)/include -I$(LIB_DIR)/include
 COMMON_FLAGS = -fno-pic -mcmodel=medany
-CFLAGS = $(COMMON_FLAGS) -static -O2 -MMD -Wall -ggdb $(INCFLAGS) \
+CFLAGS = $(COMMON_FLAGS) -static -O0 -MMD -Wall -ggdb $(INCFLAGS) \
          -fno-builtin -fno-stack-protector -ffreestanding -Wno-main
 ASFLAGS = $(COMMON_FLAGS) -O0 -MMD $(INCFLAGS)
 LDFLAGS = -melf64lriscv -T $(LINKER_SCRIPT) -L$(LIB_BUILD_DIR) -l$(LIB_NAME) -g
@@ -83,7 +83,7 @@ run: build
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA)
 
-debug-run: build
+debug-run:
 	@qemu-system-riscv64 \
 		-machine virt \
 		-nographic \
@@ -91,7 +91,7 @@ debug-run: build
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 		-s -S
 
-debug-gdb: build
+debug-gdb:
 	$(GDB) $(KERNEL_ELF) -ex 'target remote localhost:1234'
 
 clean:

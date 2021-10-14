@@ -18,7 +18,7 @@ typedef struct TaskContext TaskContext;
 #define TaskStatusExited 3
 
 struct TaskControlBlock {
-  uint64_t task_cx_ptr;
+  TaskContext *task_cx_ptr;
   uint64_t task_status; // UnInit / Ready / Running / Exited
 };
 
@@ -32,9 +32,10 @@ struct TaskManager {
 
 typedef struct TaskManager TaskManager;
 
-const uint64_t *get_task_cx_ptr2(TaskControlBlock *s);
+const TaskContext **get_task_cx_ptr2(TaskControlBlock *s);
 TaskContext *task_context_goto_restore(TaskContext *c);
 
+void task_init();
 void task_run_first_task();
 void task_run_next_task();
 void task_mark_current_suspended();

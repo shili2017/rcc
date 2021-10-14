@@ -1,4 +1,5 @@
 #include "config.h"
+#include "log.h"
 #include "string.h"
 #include "task.h"
 #include "trap.h"
@@ -47,7 +48,7 @@ void loader_load_apps() {
   uint64_t num_app = loader_get_num_app();
 
   uint64_t app_start[MAX_APP_NUM + 1];
-  for (uint64_t i = 0; i < num_app; i++) {
+  for (uint64_t i = 0; i < num_app + 1; i++) {
     app_start[i] = num_app_ptr[i + 1];
   }
 
@@ -66,6 +67,8 @@ void loader_load_apps() {
     uint8_t *dst = (uint8_t *)base_i;
     size_t len = app_start[i + 1] - app_start[i];
     memcpy(dst, src, len);
+
+    info("App %d -> [0x%llx, 0x%llx)\n", i, base_i, base_i + len);
   }
 }
 

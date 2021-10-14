@@ -1,7 +1,7 @@
+#include "trap.h"
 #include "log.h"
 #include "syscall.h"
 #include "task.h"
-#include "trap.h"
 
 extern void __alltraps();
 
@@ -31,6 +31,8 @@ TrapContext *trap_handler(TrapContext *c) {
     c->sepc += 4;
     c->x[10] = syscall(c->x[17], c->x[10], c->x[11], c->x[12]);
     break;
+  case LoadFault:
+  case LoadPageFault:
   case StoreFault:
   case StorePageFault:
     info("PageFault in application, bad addr = %llx, bad instruction = %llx, "
