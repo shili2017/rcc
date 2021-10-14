@@ -1,7 +1,5 @@
-#include <stdint.h>
-
-#include "log.h"
 #include "sbi.h"
+#include "log.h"
 #include "stdio.h"
 
 static inline int64_t sbi_call(uint64_t id, uint64_t a0, uint64_t a1,
@@ -18,6 +16,8 @@ static inline int64_t sbi_call(uint64_t id, uint64_t a0, uint64_t a1,
                : "memory", "x10", "x11", "x12", "x17");
   return ret;
 }
+
+void set_timer(uint64_t timer) { sbi_call(SBI_SET_TIMER, timer, 0, 0); }
 
 void console_putchar(char c) { sbi_call(SBI_CONSOLE_PUTCHAR, c, 0, 0); }
 

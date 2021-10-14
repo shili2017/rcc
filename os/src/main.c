@@ -1,9 +1,11 @@
 #include <stdint.h>
 
-#include "batch.h"
+#include "loader.h"
 #include "log.h"
 #include "sbi.h"
 #include "stdio.h"
+#include "task.h"
+#include "timer.h"
 #include "trap.h"
 
 extern uint8_t stext, etext;
@@ -18,7 +20,7 @@ void clear_bss() {
   }
 }
 
-int main() {
+void main() {
   clear_bss();
   info("Hello, world!\n");
   debug(".text      [0x%llx, 0x%llx)\n", &stext, &etext);
@@ -28,9 +30,14 @@ int main() {
   debug(".bss       [0x%llx, 0x%llx)\n", &sbss, &ebss);
 
   trap_init();
-  batch_init();
-  batch_run_next_app();
 
-  shutdown();
-  return 0;
+  loader_load_apps();
+
+  trap_enable_timer_interrupt();
+
+  timer_set_next_trigger();
+
+  task_run_first_task();
+
+  panic("Unreachable in main()!\n");
 }
