@@ -36,7 +36,7 @@ Enter `os` directory and then
 make debug-run
 ```
 
-In another terminal, enter `os`directory and then
+In another terminal, enter `os` directory and then
 
 ```
 make debug-gdb
