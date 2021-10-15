@@ -34,7 +34,7 @@ LIB = $(LIB_BUILD_DIR)/lib$(LIB_NAME).a
 # Flags
 INCFLAGS = -I$(WORK_DIR)/include -I$(LIB_DIR)/include
 COMMON_FLAGS = -fno-pic -mcmodel=medany
-CFLAGS = $(COMMON_FLAGS) -static -O2 -MMD -Wall -ggdb $(INCFLAGS) \
+CFLAGS = $(COMMON_FLAGS) -static -O0 -MMD -Wall -ggdb $(INCFLAGS) \
          -fno-builtin -fno-stack-protector -ffreestanding -Wno-main
 ASFLAGS = $(COMMON_FLAGS) -O0 -MMD $(INCFLAGS)
 LDFLAGS = -melf64lriscv -T $(LINKER_SCRIPT) -L$(LIB_BUILD_DIR) -l$(LIB_NAME) -g
@@ -47,6 +47,17 @@ KERNEL_DISASM = $(BUILD_DIR)/$(KERNEL_NAME).txt
 
 # Kernel entry
 KERNEL_ENTRY_PA = 0x80200000
+
+# Kernel log level
+LOG_LEVELS = ERROR WARN INFO DEBUG TRACE
+ifeq ($(LOG),)
+LOG = INFO
+else
+ifeq ($(filter $(LOG_LEVELS), $(LOG)), )
+  $(error Expected $$LOG in {$(LOG_LEVELS)}, Got "$(LOG)")
+endif
+endif
+CFLAGS += -DLOG_LEVEL=LOG_$(LOG)
 
 default: build
 
@@ -83,7 +94,7 @@ run: build
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA)
 
-debug-run: build
+debug-run:
 	@qemu-system-riscv64 \
 		-machine virt \
 		-nographic \
@@ -91,7 +102,7 @@ debug-run: build
 		-device loader,file=$(KERNEL_BIN),addr=$(KERNEL_ENTRY_PA) \
 		-s -S
 
-debug-gdb: build
+debug-gdb:
 	$(GDB) $(KERNEL_ELF) -ex 'target remote localhost:1234'
 
 clean:
@@ -102,4 +113,4 @@ clean-all: clean
 	cd $(LIB_DIR) && $(MAKE) clean
 	cd $(USER_DIR) && $(MAKE) clean
 
-.PHONY: default build run debug-run debug-gdb clean clean-all
+.PHONY: default build build-lib build-user run debug-run debug-gdb clean clean-all

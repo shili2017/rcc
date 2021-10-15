@@ -3,13 +3,23 @@
 
 #include <stdint.h>
 
-typedef struct TrapContext TrapContext;
-
 struct TrapContext {
   uint64_t x[32];
   uint64_t sstatus;
   uint64_t sepc;
 };
+typedef struct TrapContext TrapContext;
+
+// Interrupt
+
+#define UserSoft 0
+#define SupervisorSoft 1
+#define UserTimer 4
+#define SupervisorTimer 5
+#define UserExternal 8
+#define SupervisorExternal 9
+
+// Exception
 
 #define InstructionMisaligned 0
 #define InstructionFault 1
@@ -27,6 +37,7 @@ struct TrapContext {
 #define StorePageFault 15
 
 void trap_init();
+void trap_enable_timer_interrupt();
 TrapContext *app_init_context(uint64_t entry, uint64_t sp, TrapContext *c);
 
 #endif // _TRAP_H_

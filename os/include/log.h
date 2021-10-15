@@ -10,7 +10,9 @@
 #define LOG_DEBUG 3
 #define LOG_TRACE 4
 
+#ifndef LOG_LEVEL
 #define LOG_LEVEL LOG_INFO
+#endif
 
 #define ANSI_RED 31
 #define ANSI_YELLOW 93
