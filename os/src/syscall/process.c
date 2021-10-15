@@ -21,7 +21,7 @@ int64_t sys_set_priority(int64_t prio) {
   if (prio < 2) {
     return -1;
   }
-  // todo: implement this function
+  task_set_priority(prio);
   return prio;
 }
 

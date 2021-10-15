@@ -12,14 +12,22 @@ struct TaskContext {
 
 typedef struct TaskContext TaskContext;
 
-#define TaskStatusUnInit 0
-#define TaskStatusReady 1
-#define TaskStatusRunning 2
-#define TaskStatusExited 3
+#define TASK_STATUS_UNINIT 0
+#define TASK_STATUS_READY 1
+#define TASK_STATUS_RUNNING 2
+#define TASK_STATUS_EXITED 3
+
+#define BIG_STRIDE 100000
+#define MAX_PRIORITY 32
+#define DEFAULT_PRIORITY 16
 
 struct TaskControlBlock {
   TaskContext *task_cx_ptr;
   uint64_t task_status; // UnInit / Ready / Running / Exited
+
+  // stride scheduling
+  uint64_t priority;
+  uint64_t stride;
 };
 
 typedef struct TaskControlBlock TaskControlBlock;
@@ -43,5 +51,6 @@ void task_mark_current_exited();
 void task_suspend_current_and_run_next();
 void task_exit_current_and_run_next();
 uint64_t task_get_current_task();
+void task_set_priority(int64_t prio);
 
 #endif // _TASK_H_
