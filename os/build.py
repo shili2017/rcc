@@ -6,8 +6,8 @@ APP_PATH = '../user/src/bin'
 TARGET_PATH = '../user/build/'
 
 # Test
-APP_PATH = '../../rCore_tutorial_tests/user/build/bin/'
-TARGET_PATH = '../../rCore_tutorial_tests/user/build/bin/'
+# APP_PATH = '../../rCore_tutorial_tests/user/build/bin/'
+# TARGET_PATH = '../../rCore_tutorial_tests/user/build/bin/'
 
 if __name__ == '__main__':
   f = open('src/link_app.S', 'w')
