@@ -44,8 +44,7 @@ LDFLAGS = -melf64lriscv -T $(APPS_LINKER_SCRIPT) \
 
 default: build
 
-build: build-lib $(USER_LIB)
-	python3 build.py
+build: build-lib $(USER_LIB) $(APPS_ELF) $(APPS_OBJ)
 
 build-lib:
 	cd $(LIB_DIR) && $(MAKE)
@@ -53,8 +52,8 @@ build-lib:
 $(USER_LIB): $(USER_LIB_OBJ)
 	$(AR) cr $@ $^
 
-$(BUILD_DIR)/%.elf: $(DST_DIR)/$(APPS_DIR)/%.o $(DST_DIR)/$(APPS_DIR)/%.o
-	$(LD) $(LDFLAGS) $< $(LIB) -o $@
+$(BUILD_DIR)/%.elf: $(DST_DIR)/$(APPS_DIR)/%.o
+	$(LD) $(LDFLAGS) $^ $(LIB) -o $@
 	$(OBJCOPY) $@ --strip-all -O binary $(basename $@).bin
 	$(OBJDUMP) $@ -d > $(basename $@).txt
 
