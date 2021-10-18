@@ -40,17 +40,4 @@ struct TaskManager {
 
 typedef struct TaskManager TaskManager;
 
-const TaskContext **get_task_cx_ptr2(TaskControlBlock *s);
-TaskContext *task_context_goto_restore(TaskContext *c);
-
-void task_init();
-void task_run_first_task();
-void task_run_next_task();
-void task_mark_current_suspended();
-void task_mark_current_exited();
-void task_suspend_current_and_run_next();
-void task_exit_current_and_run_next();
-uint64_t task_get_current_task();
-void task_set_priority(int64_t prio);
-
 #endif // _TASK_H_

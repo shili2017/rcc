@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "config.h"
+#include "external.h"
 
 typedef uint64_t PhysAddr;
 typedef uint64_t VirtAddr;
@@ -18,20 +19,11 @@ typedef uint64_t VirtPageNum;
 #define get_page_num_from_addr(x) addr_floor(x)
 #define get_addr_from_page_num(x) ((x) << PAGE_SIZE_BITS)
 
-typedef struct LinkedList LinkedList;
-
-struct LinkedList {
-  LinkedList *next;
-}
-
-struct StackFrameAllocator {
-  // PhysPageNum in rCore, but PhysAddr in rcc
-  PhysAddr current;
-  PhysAddr end;
-  LinkedList *recycled;
-}
-
-typedef struct StackFrameAllocator StackFrameAllocator;
+typedef struct {
+  PhysPageNum current;
+  PhysPageNum end;
+  struct vector recycled;
+} StackFrameAllocator;
 
 #define PTE_V (1L << 0)
 #define PTE_R (1L << 1)
@@ -48,28 +40,38 @@ typedef uint64_t PageTableEntry;
 #define pte_new(ppn, flags) ((ppn) << 10 | (PageTableEntry)flags)
 #define pte_empty() 0
 #define pte_ppn(pte) (((pte) >> 10) & ((1L << 44) - 1))
-#define pte_flags(pte) ((PTEFlags)(pte & 0xff))
-#define pte_is_valid(pte) ((pte & PTE_V) != pte_empty())
-#define pte_readable(pte) ((pte & PTE_R) != pte_empty())
-#define pte_writable(pte) ((pte & PTE_W) != pte_empty())
-#define pte_executable(pte) ((pte & PTE_X) != pte_empty())
+#define pte_flags(pte) ((PTEFlags)((pte)&0xff))
+#define pte_is_valid(pte) (((pte)&PTE_V) != pte_empty())
+#define pte_readable(pte) (((pte)&PTE_R) != pte_empty())
+#define pte_writable(pte) (((pte)&PTE_W) != pte_empty())
+#define pte_executable(pte) (((pte)&PTE_X) != pte_empty())
 
 typedef PhysPageNum PageTable;
 
-struct VPNRange {
+typedef struct {
   VirtPageNum l;
   VirtPageNum r;
-}
+} VPNRange;
 
-typedef struct VPNRange VPNRange;
+typedef uint8_t MapType;
+#define MAP_IDENTICAL 0
+#define MAP_FRAMED 1
 
-struct MapArea {
+typedef uint8_t MapPermission;
+#define MAP_PERM_R (1 << 1)
+#define MAP_PERM_W (1 << 2)
+#define MAP_PERM_X (1 << 3)
+#define MAP_PERM_U (1 << 4)
+
+typedef struct {
   VPNRange vpn_range;
+} MapArea;
 
-}
-
-struct MemorySet {
+typedef struct {
   PageTable page_table;
-}
+  struct vector *areas;
+  MapType map_type;
+  MapPermission map_perm;
+} MemorySet;
 
 #endif // _MM_H_

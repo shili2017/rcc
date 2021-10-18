@@ -16,6 +16,8 @@
 #define APP_BASE_ADDRESS 0x80400000
 #define APP_SIZE_LIMIT 0x20000
 
+#define MAX_APP_NUM 16
+
 // kernel stack in kernel space
 #define kernel_stack_position_top(x)                                           \
   (TRAMPOLINE - (x) * (KERNEL_STACK_SIZE + PAGE_SIZE))

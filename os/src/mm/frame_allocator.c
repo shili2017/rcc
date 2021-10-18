@@ -1,4 +1,5 @@
 #include "config.h"
+#include "external.h"
 #include "mm.h"
 #include "string.h"
 
@@ -6,42 +7,40 @@ static StackFrameAllocator FRAME_ALLOCATOR;
 
 void frame_allocator_init() {
   extern uint8_t ekernel;
-  FRAME_ALLOCATOR.current = addr_ceil(&ekernel);
+  FRAME_ALLOCATOR.current = addr_ceil((PhysAddr)&ekernel);
   FRAME_ALLOCATOR.end = addr_floor(MEMORY_END);
-  FRAME_ALLOCATOR.recycled = NULL;
+  vector_new(&FRAME_ALLOCATOR.recycled, sizeof(PhysPageNum));
 }
 
 PhysPageNum frame_alloc() {
-  if (FRAME_ALLOCATOR.recycled) {
-    PhysPageNum ppn = get_page_num_from_addr(FRAME_ALLOCATOR.recycled);
-    FRAME_ALLOCATOR.recycled = FRAME_ALLOCATOR.recycled->next;
-    return ppn;
+  PhysPageNum ppn;
+  if (!vector_empty(&FRAME_ALLOCATOR.recycled)) {
+    ppn = get_page_num_from_addr(
+        *(PhysPageNum *)vector_back(&FRAME_ALLOCATOR.recycled));
+    vector_pop(&FRAME_ALLOCATOR.recycled);
   } else {
     if (FRAME_ALLOCATOR.current == FRAME_ALLOCATOR.end) {
-      return NULL;
+      panic("No empty physical page.\n");
     } else {
-      PhysPageNum ppn = get_page_num_from_addr(FRAME_ALLOCATOR.current);
-      FRAME_ALLOCATOR.current += PAGE_SIZE;
-      return ppn;
+      ppn = get_page_num_from_addr(FRAME_ALLOCATOR.current);
+      FRAME_ALLOCATOR.current++;
     }
   }
+  memset(get_addr_from_page_num(ppn), 0, PAGE_SIZE);
+  return ppn;
 }
 
 void frame_dealloc(PhysPageNum ppn) {
-  PhysAddr pa = get_addr_from_page_num(ppn);
   bool in_recycled = false;
-  LinkedList *v = FRAME_ALLOCATOR.recycled;
-  while (v) {
-    if (v == pa) {
+  PhysPageNum *x = (PhysPageNum *)(FRAME_ALLOCATOR.recycled.buffer);
+  for (unsigned i = 0; i < FRAME_ALLOCATOR.recycled.size; i++) {
+    if (x[i] == ppn) {
       in_recycled = true;
-    } else {
-      v = v->next;
+      break;
     }
   }
-  if (pa >= FRAME_ALLOCATOR.current || in_recycled) {
+  if (ppn >= FRAME_ALLOCATOR.current || in_recycled) {
     panic("Frame ppn=%llx has not been allocated!\n", ppn);
   }
-  v = FRAME_ALLOCATOR.recycled;
-  FRAME_ALLOCATOR.recycled = (LinkedList *)pa;
-  pa->next = v;
+  vector_push(&FRAME_ALLOCATOR.recycled, &ppn);
 }
