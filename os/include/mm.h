@@ -46,7 +46,18 @@ typedef uint64_t PageTableEntry;
 #define pte_writable(pte) (((pte)&PTE_W) != pte_empty())
 #define pte_executable(pte) (((pte)&PTE_X) != pte_empty())
 
-typedef PhysPageNum PageTable;
+typedef struct {
+  PhysPageNum root_ppn;
+} PageTable;
+
+void page_table_new(PageTable *pt);
+PageTableEntry *page_table_find_pte_create(PageTable *pt, VirtPageNum vpn);
+PageTableEntry *page_table_find_pte(PageTable *pt, VirtPageNum vpn);
+void page_table_map(PageTable *pt, VirtPageNum vpn, PhysPageNum ppn,
+                    PTEFlags flags);
+void page_table_unmap(PageTable *pt, VirtPageNum vpn);
+PageTableEntry *page_table_translate(PageTable *pt, VirtPageNum vpn);
+uint64_t page_table_token(PageTable *pt);
 
 typedef struct {
   VirtPageNum l;
@@ -58,20 +69,20 @@ typedef uint8_t MapType;
 #define MAP_FRAMED 1
 
 typedef uint8_t MapPermission;
-#define MAP_PERM_R (1 << 1)
-#define MAP_PERM_W (1 << 2)
-#define MAP_PERM_X (1 << 3)
-#define MAP_PERM_U (1 << 4)
+#define MAP_PERM_R PTE_R
+#define MAP_PERM_W PTE_W
+#define MAP_PERM_X PTE_X
+#define MAP_PERM_U PTE_U
 
 typedef struct {
   VPNRange vpn_range;
+  MapType map_type;
+  MapPermission map_perm;
 } MapArea;
 
 typedef struct {
   PageTable page_table;
-  struct vector *areas;
-  MapType map_type;
-  MapPermission map_perm;
+  struct vector areas;
 } MemorySet;
 
 #endif // _MM_H_

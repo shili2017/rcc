@@ -22,11 +22,6 @@ void clear_bss() {
 
 void main() {
   clear_bss();
-  debug(".text      [0x%llx, 0x%llx)\n", &stext, &etext);
-  debug(".rodata    [0x%llx, 0x%llx)\n", &srodata, &erodata);
-  debug(".data      [0x%llx, 0x%llx)\n", &sdata, &edata);
-  debug("boot_stack [0x%llx, 0x%llx)\n", &boot_stack, &boot_stack_top);
-  debug(".bss       [0x%llx, 0x%llx)\n", &sbss, &ebss);
 
   info("Hello, world!\n");
 

@@ -1,5 +1,6 @@
 #include "trap.h"
 #include "log.h"
+#include "riscv.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
@@ -8,23 +9,18 @@ extern void __alltraps();
 
 void trap_init() {
   // initialize trap entry (direct mode)
-  asm volatile("csrw stvec, %0" ::"r"(__alltraps));
+  w_stvec((uint64_t)__alltraps);
 }
 
 void trap_enable_timer_interrupt() {
-  uint64_t sie;
-  uint64_t sie_stie = 0x20;
-  asm volatile("csrr %0, sie" : "=r"(sie));
-  sie = sie | sie_stie;
-  asm volatile("csrw sie, %0" ::"r"(sie));
+  uint64_t sie = r_sie();
+  sie = sie | SIE_STIE;
+  w_sie(sie);
 }
 
 TrapContext *trap_handler(TrapContext *c) {
-  uint64_t scause;
-  uint64_t stval;
-  asm volatile("csrr %0, scause\n"
-               "csrr %1, stval\n"
-               : "=r"(scause), "=r"(stval));
+  uint64_t scause = r_scause();
+  uint64_t stval = r_stval();
 
   if (scause & (1ULL << 63)) {
     scause &= ~(1ULL << 63);
