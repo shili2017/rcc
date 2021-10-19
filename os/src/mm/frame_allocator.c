@@ -8,26 +8,25 @@ static StackFrameAllocator FRAME_ALLOCATOR;
 
 void frame_allocator_init() {
   extern uint8_t ekernel;
-  FRAME_ALLOCATOR.current = addr_ceil((PhysAddr)&ekernel);
-  FRAME_ALLOCATOR.end = addr_floor(MEMORY_END);
+  FRAME_ALLOCATOR.current = page_ceil((PhysAddr)&ekernel);
+  FRAME_ALLOCATOR.end = page_floor(MEMORY_END);
   vector_new(&FRAME_ALLOCATOR.recycled, sizeof(PhysPageNum));
 }
 
 PhysPageNum frame_alloc() {
   PhysPageNum ppn;
   if (!vector_empty(&FRAME_ALLOCATOR.recycled)) {
-    ppn = get_page_num_from_addr(
-        *(PhysPageNum *)vector_back(&FRAME_ALLOCATOR.recycled));
+    ppn = addr2pn(*(PhysPageNum *)vector_back(&FRAME_ALLOCATOR.recycled));
     vector_pop(&FRAME_ALLOCATOR.recycled);
   } else {
     if (FRAME_ALLOCATOR.current == FRAME_ALLOCATOR.end) {
       panic("No empty physical page.\n");
     } else {
-      ppn = get_page_num_from_addr(FRAME_ALLOCATOR.current);
+      ppn = addr2pn(FRAME_ALLOCATOR.current);
       FRAME_ALLOCATOR.current++;
     }
   }
-  memset((uint8_t *)get_addr_from_page_num(ppn), 0, PAGE_SIZE);
+  memset((uint8_t *)pn2addr(ppn), 0, PAGE_SIZE);
   return ppn;
 }
 

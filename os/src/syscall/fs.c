@@ -19,21 +19,20 @@ static void print_byte_buffer(uint64_t token, char *buf, uint64_t len) {
 
   while (start < end) {
     start_va = (VirtAddr)start;
-    vpn = addr_floor(start_va);
+    vpn = page_floor(start_va);
     ppn = pte_ppn(*page_table_translate(&page_table, vpn));
     vpn++;
-    end_va = (VirtAddr)get_addr_from_page_num(vpn);
+    end_va = (VirtAddr)pn2addr(vpn);
     if ((VirtAddr)end < end_va) {
       end_va = (VirtAddr)end;
     }
     bytes_array = ppn_get_bytes_array(ppn);
-    if (addr_page_offset(end_va) == 0) {
-      for (uint64_t i = addr_page_offset(start_va); i < PAGE_SIZE; i++) {
+    if (page_aligned(end_va)) {
+      for (uint64_t i = page_offset(start_va); i < PAGE_SIZE; i++) {
         console_putchar(bytes_array[i]);
       }
     } else {
-      for (uint64_t i = addr_page_offset(start_va);
-           i < addr_page_offset(end_va); i++) {
+      for (uint64_t i = page_offset(start_va); i < page_offset(end_va); i++) {
         console_putchar(bytes_array[i]);
       }
     }

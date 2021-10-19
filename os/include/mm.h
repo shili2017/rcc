@@ -8,12 +8,12 @@
 #include "config.h"
 #include "external.h"
 
-#define addr_floor(x) ((x) / PAGE_SIZE)
-#define addr_ceil(x) (((x)-1 + PAGE_SIZE) / PAGE_SIZE)
-#define addr_page_offset(x) ((x) & (PAGE_SIZE - 1))
-#define addr_aligned(x) (addr_page_offset(x) == 0)
-#define get_page_num_from_addr(x) addr_floor(x)
-#define get_addr_from_page_num(x) ((x) << PAGE_SIZE_BITS)
+#define page_floor(x) ((x) / PAGE_SIZE)
+#define page_ceil(x) (((x)-1 + PAGE_SIZE) / PAGE_SIZE)
+#define page_offset(x) ((x) & (PAGE_SIZE - 1))
+#define page_aligned(x) (page_offset(x) == 0)
+#define addr2pn(x) page_floor(x)
+#define pn2addr(x) ((x) << PAGE_SIZE_BITS)
 
 #define pte_new(ppn, flags) ((ppn) << 10 | (PageTableEntry)flags)
 #define pte_empty() 0

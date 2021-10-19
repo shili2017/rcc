@@ -76,8 +76,8 @@ static void memory_set_insert_framed_area(MemorySet *memory_set,
                                           VirtAddr start_va, VirtAddr end_va,
                                           MapPermission permission) {
   MapArea map_area;
-  map_area.vpn_range.l = addr_floor(start_va);
-  map_area.vpn_range.r = addr_ceil(end_va);
+  map_area.vpn_range.l = page_floor(start_va);
+  map_area.vpn_range.r = page_ceil(end_va);
   map_area.map_type = MAP_FRAMED;
   map_area.map_perm = permission;
   memory_set_push(memory_set, &map_area, NULL, 0);
@@ -96,8 +96,8 @@ extern uint8_t strampoline;
 
 // Mention that trampoline is not collected by areas.
 static inline void memory_set_map_trampoline(MemorySet *memory_set) {
-  page_table_map(&memory_set->page_table, get_page_num_from_addr(TRAMPOLINE),
-                 get_page_num_from_addr((PhysAddr)&strampoline), PTE_R | PTE_X);
+  page_table_map(&memory_set->page_table, addr2pn(TRAMPOLINE),
+                 addr2pn((PhysAddr)&strampoline), PTE_R | PTE_X);
 }
 
 static MemorySet KERNEL_SPACE;
@@ -118,36 +118,36 @@ static void memory_set_new_kernel() {
   MapArea map_area;
 
   info("mapping .text section\n");
-  map_area.vpn_range.l = addr_floor((PhysAddr)&stext);
-  map_area.vpn_range.r = addr_ceil((PhysAddr)&etext);
+  map_area.vpn_range.l = page_floor((PhysAddr)&stext);
+  map_area.vpn_range.r = page_ceil((PhysAddr)&etext);
   map_area.map_type = MAP_IDENTICAL;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_X;
   memory_set_push(memory_set, &map_area, NULL, 0);
 
   info("mapping .rodata section\n");
-  map_area.vpn_range.l = addr_floor((PhysAddr)&srodata);
-  map_area.vpn_range.r = addr_ceil((PhysAddr)&erodata);
+  map_area.vpn_range.l = page_floor((PhysAddr)&srodata);
+  map_area.vpn_range.r = page_ceil((PhysAddr)&erodata);
   map_area.map_type = MAP_IDENTICAL;
   map_area.map_perm = MAP_PERM_R;
   memory_set_push(memory_set, &map_area, NULL, 0);
 
   info("mapping .data section\n");
-  map_area.vpn_range.l = addr_floor((PhysAddr)&sdata);
-  map_area.vpn_range.r = addr_ceil((PhysAddr)&edata);
+  map_area.vpn_range.l = page_floor((PhysAddr)&sdata);
+  map_area.vpn_range.r = page_ceil((PhysAddr)&edata);
   map_area.map_type = MAP_IDENTICAL;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
   memory_set_push(memory_set, &map_area, NULL, 0);
 
   info("mapping .bss section\n");
-  map_area.vpn_range.l = addr_floor((PhysAddr)&sbss_with_stack);
-  map_area.vpn_range.r = addr_ceil((PhysAddr)&ebss);
+  map_area.vpn_range.l = page_floor((PhysAddr)&sbss_with_stack);
+  map_area.vpn_range.r = page_ceil((PhysAddr)&ebss);
   map_area.map_type = MAP_IDENTICAL;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
   memory_set_push(memory_set, &map_area, NULL, 0);
 
   info("mapping physical memory\n");
-  map_area.vpn_range.l = addr_floor((PhysAddr)&ekernel);
-  map_area.vpn_range.r = addr_ceil((PhysAddr)MEMORY_END);
+  map_area.vpn_range.l = page_floor((PhysAddr)&ekernel);
+  map_area.vpn_range.r = page_ceil((PhysAddr)MEMORY_END);
   map_area.map_type = MAP_IDENTICAL;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
   memory_set_push(memory_set, &map_area, NULL, 0);
@@ -190,8 +190,8 @@ void memory_set_from_elf(MemorySet *memory_set, uint8_t *elf_data,
       if (ph_flags | PF_X) {
         map_perm |= MAP_PERM_X;
       }
-      map_area.vpn_range.l = addr_floor(start_va);
-      map_area.vpn_range.r = addr_ceil(end_va);
+      map_area.vpn_range.l = page_floor(start_va);
+      map_area.vpn_range.r = page_ceil(end_va);
       map_area.map_type = MAP_FRAMED;
       map_area.map_perm = map_perm;
       max_end_vpn = map_area.vpn_range.r;
@@ -202,20 +202,20 @@ void memory_set_from_elf(MemorySet *memory_set, uint8_t *elf_data,
   }
 
   // map user stack with U flags
-  VirtAddr max_end_va = get_addr_from_page_num(max_end_vpn);
+  VirtAddr max_end_va = pn2addr(max_end_vpn);
   VirtAddr user_stack_bottom = max_end_va;
   // guard page
   user_stack_bottom += PAGE_SIZE;
   VirtAddr user_stack_top = user_stack_bottom + USER_STACK_SIZE;
-  map_area.vpn_range.l = addr_floor(user_stack_bottom);
-  map_area.vpn_range.r = addr_ceil(user_stack_top);
+  map_area.vpn_range.l = page_floor(user_stack_bottom);
+  map_area.vpn_range.r = page_ceil(user_stack_top);
   map_area.map_type = MAP_FRAMED;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_W | MAP_PERM_U;
   memory_set_push(memory_set, &map_area, NULL, 0);
 
   // map TrapContext
-  map_area.vpn_range.l = addr_floor(TRAP_CONTEXT);
-  map_area.vpn_range.r = addr_ceil(TRAMPOLINE);
+  map_area.vpn_range.l = page_floor(TRAP_CONTEXT);
+  map_area.vpn_range.r = page_ceil(TRAMPOLINE);
   map_area.map_type = MAP_FRAMED;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
   memory_set_push(memory_set, &map_area, NULL, 0);
@@ -254,11 +254,11 @@ void memory_set_remap_test() {
   VirtAddr mid_data = (VirtAddr)(((uint64_t)&sdata + (uint64_t)&edata) / 2);
 
   assert(!pte_writable(*page_table_translate(
-      &KERNEL_SPACE.page_table, (VirtPageNum)addr_floor(mid_text))));
+      &KERNEL_SPACE.page_table, (VirtPageNum)page_floor(mid_text))));
   assert(!pte_writable(*page_table_translate(
-      &KERNEL_SPACE.page_table, (VirtPageNum)addr_floor(mid_rodata))));
+      &KERNEL_SPACE.page_table, (VirtPageNum)page_floor(mid_rodata))));
   assert(!pte_executable(*page_table_translate(
-      &KERNEL_SPACE.page_table, (VirtPageNum)addr_floor(mid_data))));
+      &KERNEL_SPACE.page_table, (VirtPageNum)page_floor(mid_data))));
 
   info("remap_test passed!\n");
 }

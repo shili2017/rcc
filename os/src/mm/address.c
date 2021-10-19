@@ -9,11 +9,11 @@ void vpn_indexes(VirtPageNum vpn, uint64_t *idx) {
 }
 
 PageTableEntry *ppn_get_pte_array(PhysPageNum ppn) {
-  PhysAddr pa = get_addr_from_page_num(ppn);
+  PhysAddr pa = pn2addr(ppn);
   return (PageTableEntry *)pa; // len = 512 * 8
 }
 
 uint8_t *ppn_get_bytes_array(PhysPageNum ppn) {
-  PhysAddr pa = get_addr_from_page_num(ppn);
+  PhysAddr pa = pn2addr(ppn);
   return (uint8_t *)pa; // len = PAGE_SIZE (4096)
 }

@@ -6,7 +6,7 @@ const TaskContext **get_task_cx_ptr2(TaskControlBlock *s) {
 }
 
 TrapContext *get_trap_cx(TaskControlBlock *s) {
-  return (TrapContext *)get_addr_from_page_num(s->trap_cx_ppn);
+  return (TrapContext *)pn2addr(s->trap_cx_ppn);
 }
 
 uint64_t get_user_token(TaskControlBlock *s) {
@@ -21,8 +21,7 @@ void task_control_block_new(uint8_t *elf_data, size_t elf_size, uint64_t app_id,
   memory_set_from_elf(&s->memory_set, elf_data, elf_size, &user_sp,
                       &entry_point);
   PhysPageNum trap_cx_ppn = pte_ppn(*memory_set_translate(
-      &s->memory_set,
-      (VirtPageNum)get_page_num_from_addr((VirtAddr)TRAP_CONTEXT)));
+      &s->memory_set, (VirtPageNum)addr2pn((VirtAddr)TRAP_CONTEXT)));
 
   // map a kernel-stack in kernel space
   uint64_t kernel_stack_bottom = kernel_stack_position_bottom(app_id);
