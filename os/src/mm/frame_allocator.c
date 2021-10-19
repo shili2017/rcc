@@ -1,5 +1,6 @@
 #include "config.h"
 #include "external.h"
+#include "log.h"
 #include "mm.h"
 #include "string.h"
 

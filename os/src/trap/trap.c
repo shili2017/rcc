@@ -5,11 +5,24 @@
 #include "task.h"
 #include "timer.h"
 
-extern void __alltraps();
+void trap_from_kernel() {
+  // Currently we don't support in-kernel trap
+  panic("A trap from kernel!\n");
+}
+
+static inline void set_kernel_trap_entry() {
+  // write to stvec - trap_from_kernel
+  w_stvec((uint64_t)trap_from_kernel);
+}
+
+static inline void set_user_trap_entry() {
+  // write to stvec - TRAMPOLINE
+  w_stvec((uint64_t)TRAMPOLINE);
+}
 
 void trap_init() {
-  // initialize trap entry (direct mode)
-  w_stvec((uint64_t)__alltraps);
+  // Trap init
+  set_kernel_trap_entry();
 }
 
 void trap_enable_timer_interrupt() {
@@ -18,7 +31,10 @@ void trap_enable_timer_interrupt() {
   w_sie(sie);
 }
 
-TrapContext *trap_handler(TrapContext *c) {
+void trap_handler() {
+  set_kernel_trap_entry();
+
+  TrapContext *cx = task_current_trap_cx();
   uint64_t scause = r_scause();
   uint64_t stval = r_stval();
 
@@ -36,8 +52,8 @@ TrapContext *trap_handler(TrapContext *c) {
   } else {
     switch (scause) {
     case UserEnvCall:
-      c->sepc += 4;
-      c->x[10] = syscall(c->x[17], c->x[10], c->x[11], c->x[12]);
+      cx->sepc += 4;
+      cx->x[10] = syscall(cx->x[17], cx->x[10], cx->x[11], cx->x[12]);
       break;
     case StoreFault:
     case StorePageFault:
@@ -47,7 +63,7 @@ TrapContext *trap_handler(TrapContext *c) {
     case LoadPageFault:
       info("Exception %lld in application, bad addr = %llx, bad instruction = "
            "%llx, core dumped.\n",
-           scause, stval, c->sepc);
+           scause, stval, cx->sepc);
       task_exit_current_and_run_next();
       break;
     case IllegalInstruction:
@@ -60,5 +76,24 @@ TrapContext *trap_handler(TrapContext *c) {
     }
   }
 
-  return c;
+  trap_return();
+}
+
+extern void __alltraps();
+extern void __restore();
+
+void trap_return() {
+  set_user_trap_entry();
+  uint64_t trap_cx_ptr = TRAP_CONTEXT;
+  uint64_t user_satp = task_current_user_token();
+  uint64_t restore_va = (uint64_t)__restore - (uint64_t)__alltraps + TRAMPOLINE;
+  asm volatile("fence.i");
+  asm volatile("");
+  asm volatile("mv x10, %1\n"
+               "mv x11, %2\n"
+               "jr %0\n"
+               :
+               : "r"(restore_va), "r"(trap_cx_ptr), "r"(user_satp)
+               : "memory", "x10", "x11");
+  panic("Unreachable in back_to_user!\n");
 }

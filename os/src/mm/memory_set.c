@@ -4,7 +4,8 @@
 #include "riscv.h"
 #include "string.h"
 
-void map_area_map_one(MapArea *map_area, PageTable *pt, VirtPageNum vpn) {
+static void map_area_map_one(MapArea *map_area, PageTable *pt,
+                             VirtPageNum vpn) {
   PhysPageNum ppn;
   if (map_area->map_type == MAP_IDENTICAL) {
     ppn = (PhysPageNum)vpn;
@@ -15,26 +16,27 @@ void map_area_map_one(MapArea *map_area, PageTable *pt, VirtPageNum vpn) {
   page_table_map(pt, vpn, ppn, pte_flags);
 }
 
-void map_area_unmap_one(MapArea *map_area, PageTable *pt, VirtPageNum vpn) {
+static void map_area_unmap_one(MapArea *map_area, PageTable *pt,
+                               VirtPageNum vpn) {
   page_table_unmap(pt, vpn);
 }
 
-void map_area_map(MapArea *map_area, PageTable *pt) {
+static void map_area_map(MapArea *map_area, PageTable *pt) {
   for (VirtPageNum vpn = map_area->vpn_range.l; vpn < map_area->vpn_range.r;
        vpn++) {
     map_area_map_one(map_area, pt, vpn);
   }
 }
 
-void map_area_unmap(MapArea *map_area, PageTable *pt) {
+static void map_area_unmap(MapArea *map_area, PageTable *pt) {
   for (VirtPageNum vpn = map_area->vpn_range.l; vpn < map_area->vpn_range.r;
        vpn++) {
     map_area_unmap_one(map_area, pt, vpn);
   }
 }
 
-void map_area_copy_data(MapArea *map_area, PageTable *pt, uint8_t *data,
-                        uint64_t len) {
+static void map_area_copy_data(MapArea *map_area, PageTable *pt, uint8_t *data,
+                               uint64_t len) {
   uint64_t start = 0;
   VirtPageNum current_vpn = map_area->vpn_range.l;
   for (;;) {
@@ -51,7 +53,7 @@ void map_area_copy_data(MapArea *map_area, PageTable *pt, uint8_t *data,
   }
 }
 
-void memory_set_new_bare(MemorySet *memory_set) {
+static void memory_set_new_bare(MemorySet *memory_set) {
   page_table_new(&memory_set->page_table);
   vector_new(&memory_set->areas, sizeof(MapArea));
 }
@@ -60,8 +62,8 @@ uint64_t memory_set_token(MemorySet *memory_set) {
   return page_table_token(&memory_set->page_table);
 }
 
-void memory_set_push(MemorySet *memory_set, MapArea *map_area, uint8_t *data,
-                     uint64_t len) {
+static void memory_set_push(MemorySet *memory_set, MapArea *map_area,
+                            uint8_t *data, uint64_t len) {
   map_area_map(map_area, &memory_set->page_table);
   if (data && len >= 0) {
     map_area_copy_data(map_area, &memory_set->page_table, data, len);
@@ -70,8 +72,9 @@ void memory_set_push(MemorySet *memory_set, MapArea *map_area, uint8_t *data,
 }
 
 // Assume that no conflicts.
-void memory_set_insert_framed_area(MemorySet *memory_set, VirtAddr start_va,
-                                   VirtAddr end_va, MapPermission permission) {
+static void memory_set_insert_framed_area(MemorySet *memory_set,
+                                          VirtAddr start_va, VirtAddr end_va,
+                                          MapPermission permission) {
   MapArea map_area;
   map_area.vpn_range.l = addr_floor(start_va);
   map_area.vpn_range.r = addr_ceil(end_va);
@@ -92,14 +95,14 @@ extern uint8_t ekernel;
 extern uint8_t strampoline;
 
 // Mention that trampoline is not collected by areas.
-void memory_set_map_trampoline(MemorySet *memory_set) {
+static inline void memory_set_map_trampoline(MemorySet *memory_set) {
   page_table_map(&memory_set->page_table, get_page_num_from_addr(TRAMPOLINE),
                  get_page_num_from_addr((PhysAddr)&strampoline), PTE_R | PTE_X);
 }
 
 static MemorySet KERNEL_SPACE;
 
-void memory_set_new_kernel() {
+static void memory_set_new_kernel() {
   MemorySet *memory_set = &KERNEL_SPACE;
   memory_set_new_bare(memory_set);
 
@@ -222,7 +225,7 @@ void memory_set_from_elf(MemorySet *memory_set, uint8_t *elf_data,
   *entry_point = elf_header_get_entry(&elf);
 }
 
-void memory_set_activate(MemorySet *memory_set) {
+static void memory_set_activate(MemorySet *memory_set) {
   uint64_t satp = page_table_token(&memory_set->page_table);
   w_satp(satp);
   sfence_vma();
@@ -235,4 +238,27 @@ void memory_set_kernel_init() {
 
 PageTableEntry *memory_set_translate(MemorySet *memory_set, VirtPageNum vpn) {
   return page_table_translate(&memory_set->page_table, vpn);
+}
+
+void kernel_space_insert_framed_area(VirtAddr start_va, VirtAddr end_va,
+                                     MapPermission permission) {
+  memory_set_insert_framed_area(&KERNEL_SPACE, start_va, end_va, permission);
+}
+
+uint64_t kernel_space_token() { return memory_set_token(&KERNEL_SPACE); }
+
+void memory_set_remap_test() {
+  VirtAddr mid_text = (VirtAddr)(((uint64_t)&stext + (uint64_t)&etext) / 2);
+  VirtAddr mid_rodata =
+      (VirtAddr)(((uint64_t)&srodata + (uint64_t)&erodata) / 2);
+  VirtAddr mid_data = (VirtAddr)(((uint64_t)&sdata + (uint64_t)&edata) / 2);
+
+  assert(!pte_writable(*page_table_translate(
+      &KERNEL_SPACE.page_table, (VirtPageNum)addr_floor(mid_text))));
+  assert(!pte_writable(*page_table_translate(
+      &KERNEL_SPACE.page_table, (VirtPageNum)addr_floor(mid_rodata))));
+  assert(!pte_executable(*page_table_translate(
+      &KERNEL_SPACE.page_table, (VirtPageNum)addr_floor(mid_data))));
+
+  info("remap_test passed!\n");
 }

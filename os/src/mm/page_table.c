@@ -8,9 +8,13 @@ void page_table_new(PageTable *pt) {
   pt->root_ppn = frame;
 }
 
+void page_table_from_token(PageTable *pt, uint64_t satp) {
+  pt->root_ppn = (PhysPageNum)(satp & ((1L << 44) - 1));
+}
+
 PageTableEntry *page_table_find_pte_create(PageTable *pt, VirtPageNum vpn) {
   uint64_t idxs[3];
-  vpn_indexes(vpn, &idxs);
+  vpn_indexes(vpn, idxs);
   PhysPageNum ppn = pt->root_ppn;
   PageTableEntry *result = NULL;
   for (unsigned i = 0; i < 3; i++) {
@@ -33,7 +37,7 @@ PageTableEntry *page_table_find_pte_create(PageTable *pt, VirtPageNum vpn) {
 
 PageTableEntry *page_table_find_pte(PageTable *pt, VirtPageNum vpn) {
   uint64_t idxs[3];
-  vpn_indexes(vpn, &idxs);
+  vpn_indexes(vpn, idxs);
   PhysPageNum ppn = pt->root_ppn;
   PageTableEntry *result = NULL;
   for (unsigned i = 0; i < 3; i++) {
