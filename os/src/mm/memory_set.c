@@ -1,3 +1,4 @@
+#include "elfparse.h"
 #include "log.h"
 #include "mm.h"
 #include "riscv.h"
@@ -147,6 +148,78 @@ void memory_set_new_kernel() {
   map_area.map_type = MAP_IDENTICAL;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
   memory_set_push(memory_set, &map_area, NULL, 0);
+}
+
+void memory_set_from_elf(MemorySet *memory_set, uint8_t *elf_data,
+                         size_t elf_size, uint64_t *user_sp,
+                         uint64_t *entry_point) {
+  memory_set_new_bare(memory_set);
+
+  // map trampoline
+  memory_set_map_trampoline(memory_set);
+
+  // map progam headers of elf, with U flag
+  t_elf elf;
+  int elf_load_ret = elf_load(elf_data, elf_size, &elf);
+  if (elf_load_ret != 0) {
+    panic("Elf load error.\n");
+  }
+
+  size_t ph_count = elf_header_get_phnum(&elf);
+  VirtAddr start_va, end_va;
+  MapPermission map_perm;
+  uint64_t ph_flags;
+  MapArea map_area;
+  VirtPageNum max_end_vpn = 0;
+  for (size_t i = 0; i < ph_count; i++) {
+    t_elf_program *ph = &elf.programs[i];
+    if (elf_program_get_type(&elf, ph) == PT_LOAD) {
+      start_va = (VirtAddr)elf_program_get_vaddr(&elf, ph);
+      end_va = (VirtAddr)(start_va + elf_program_get_memsz(&elf, ph));
+      map_perm = MAP_PERM_U;
+      ph_flags = elf_program_get_flags(&elf, ph);
+      if (ph_flags | PF_R) {
+        map_perm |= MAP_PERM_R;
+      }
+      if (ph_flags | PF_W) {
+        map_perm |= MAP_PERM_W;
+      }
+      if (ph_flags | PF_X) {
+        map_perm |= MAP_PERM_X;
+      }
+      map_area.vpn_range.l = addr_floor(start_va);
+      map_area.vpn_range.r = addr_ceil(end_va);
+      map_area.map_type = MAP_FRAMED;
+      map_area.map_perm = map_perm;
+      max_end_vpn = map_area.vpn_range.r;
+      memory_set_push(memory_set, &map_area,
+                      elf_data + elf_program_get_offset(&elf, ph),
+                      elf_program_get_filesz(&elf, ph));
+    }
+  }
+
+  // map user stack with U flags
+  VirtAddr max_end_va = get_addr_from_page_num(max_end_vpn);
+  VirtAddr user_stack_bottom = max_end_va;
+  // guard page
+  user_stack_bottom += PAGE_SIZE;
+  VirtAddr user_stack_top = user_stack_bottom + USER_STACK_SIZE;
+  map_area.vpn_range.l = addr_floor(user_stack_bottom);
+  map_area.vpn_range.r = addr_ceil(user_stack_top);
+  map_area.map_type = MAP_FRAMED;
+  map_area.map_perm = MAP_PERM_R | MAP_PERM_W | MAP_PERM_U;
+  memory_set_push(memory_set, &map_area, NULL, 0);
+
+  // map TrapContext
+  map_area.vpn_range.l = addr_floor(TRAP_CONTEXT);
+  map_area.vpn_range.r = addr_ceil(TRAMPOLINE);
+  map_area.map_type = MAP_FRAMED;
+  map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
+  memory_set_push(memory_set, &map_area, NULL, 0);
+
+  // return
+  *user_sp = (uint64_t)user_stack_top;
+  *entry_point = elf_header_get_entry(&elf);
 }
 
 void memory_set_activate(MemorySet *memory_set) {
