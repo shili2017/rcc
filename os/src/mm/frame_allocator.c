@@ -26,7 +26,7 @@ PhysPageNum frame_alloc() {
       FRAME_ALLOCATOR.current++;
     }
   }
-  memset(get_addr_from_page_num(ppn), 0, PAGE_SIZE);
+  memset((uint8_t *)get_addr_from_page_num(ppn), 0, PAGE_SIZE);
   return ppn;
 }
 

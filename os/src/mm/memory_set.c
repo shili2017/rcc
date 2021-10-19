@@ -228,6 +228,11 @@ void memory_set_activate(MemorySet *memory_set) {
   sfence_vma();
 }
 
+void memory_set_kernel_init() {
+  memory_set_new_kernel();
+  memory_set_activate(&KERNEL_SPACE);
+}
+
 PageTableEntry *memory_set_translate(MemorySet *memory_set, VirtPageNum vpn) {
   return page_table_translate(&memory_set->page_table, vpn);
 }
