@@ -25,12 +25,7 @@
 #define LOG_TAG_INFO "INFO"
 #define LOG_TAG_DEBUG "DEBUG"
 #define LOG_TAG_TRACE "TRACE"
-
-#define panic(fmt, ...)                                                        \
-  do {                                                                         \
-    printf("[PANIC] " fmt, ##__VA_ARGS__);                                     \
-    shutdown();                                                                \
-  } while (0)
+#define LOG_TAG_PANIC "PANIC"
 
 #define log(level, color, tag, fmt, ...)                                       \
   do {                                                                         \
@@ -49,5 +44,18 @@
   log(LOG_DEBUG, ANSI_GREEN, LOG_TAG_DEBUG, fmt, ##__VA_ARGS__)
 #define trace(fmt, ...)                                                        \
   log(LOG_TRACE, ANSI_GREY, LOG_TAG_TRACE, fmt, ##__VA_ARGS__)
+
+#define panic(fmt, ...)                                                        \
+  do {                                                                         \
+    log(LOG_ERROR, ANSI_RED, LOG_TAG_PANIC, fmt, ##__VA_ARGS__);               \
+    shutdown();                                                                \
+  } while (0)
+
+#define assert(cond, ...)                                                      \
+  do {                                                                         \
+    if (!(cond)) {                                                             \
+      panic(__VA_ARGS__);                                                      \
+    }                                                                          \
+  } while (0)
 
 #endif // _LOG_H_

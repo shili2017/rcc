@@ -3,12 +3,14 @@
 
 #include <stdint.h>
 
-struct TrapContext {
+typedef struct {
   uint64_t x[32];
   uint64_t sstatus;
   uint64_t sepc;
-};
-typedef struct TrapContext TrapContext;
+  uint64_t kernel_satp;
+  uint64_t kernel_sp;
+  uint64_t trap_handler;
+} TrapContext;
 
 // Interrupt
 
@@ -37,7 +39,13 @@ typedef struct TrapContext TrapContext;
 #define StorePageFault 15
 
 void trap_init();
+void trap_from_kernel();
 void trap_enable_timer_interrupt();
-TrapContext *app_init_context(uint64_t entry, uint64_t sp, TrapContext *c);
+void trap_handler();
+void trap_return();
+
+void app_init_context(uint64_t entry, uint64_t sp, uint64_t kernel_satp,
+                      uint64_t kernel_sp, uint64_t trap_handler,
+                      TrapContext *c);
 
 #endif // _TRAP_H_

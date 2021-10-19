@@ -4,9 +4,9 @@ rCore-Tutorial-v3: https://github.com/rcore-os/rCore-Tutorial-v3
 
 ## Dependency
 
-1. Toolchain: `riscv64-unknown-elf-*`
+- Toolchain: `riscv64-unknown-elf-*`
 
-1. QEMU 5.0.0
+- QEMU 5.0.0
 
 ## Getting Started
 
@@ -26,7 +26,7 @@ make run
 
 ### Dependency
 
-1. Debugger: `gdb-multiarch` (`riscv64-unknown-elf-gdb` also works)
+- Debugger: `gdb-multiarch` (`riscv64-unknown-elf-gdb` also works)
 
 ### Debug in Terminal
 
@@ -93,3 +93,16 @@ Create `tasks.json` and `launch.json` under `.vscode` directory as follows.
   ]
 }
 ```
+
+## Acknowledgements
+
+`rcc` project is not built from scratch. During the development of `rcc`, part of the source code or ideas is referred from other online courses or open source projects, including
+
+| Name              | GitHub                                            |
+| -                 | -                                                 |
+| rCore             | https://github.com/rcore-os/rCore                 |
+| uCore             | https://github.com/DeathWish5/ucore-Tutorial      |
+| xv6-riscv         | https://github.com/mit-pdos/xv6-riscv-fall19      |
+| Abstract Machine  | https://github.com/NJU-ProjectN/abstract-machine  |
+| TestOS            | https://github.com/ZimingYuan/testos              |
+| Elfparse          | https://github.com/DBarthe/Elfparse               |
