@@ -16,13 +16,13 @@ void frame_allocator_init() {
 PhysPageNum frame_alloc() {
   PhysPageNum ppn;
   if (!vector_empty(&FRAME_ALLOCATOR.recycled)) {
-    ppn = addr2pn(*(PhysPageNum *)vector_back(&FRAME_ALLOCATOR.recycled));
+    ppn = *(PhysPageNum *)vector_back(&FRAME_ALLOCATOR.recycled);
     vector_pop(&FRAME_ALLOCATOR.recycled);
   } else {
     if (FRAME_ALLOCATOR.current == FRAME_ALLOCATOR.end) {
       panic("No empty physical page.\n");
     } else {
-      ppn = addr2pn(FRAME_ALLOCATOR.current);
+      ppn = FRAME_ALLOCATOR.current;
       FRAME_ALLOCATOR.current++;
     }
   }

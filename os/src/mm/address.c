@@ -2,7 +2,7 @@
 #include "mm.h"
 
 void vpn_indexes(VirtPageNum vpn, uint64_t *idx) {
-  for (unsigned i = 2; i >= 0; i--) {
+  for (int i = 2; i >= 0; i--) {
     idx[i] = vpn & 0x1ff;
     vpn >>= 9;
   }
