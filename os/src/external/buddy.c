@@ -118,7 +118,7 @@ void *addr(int k, int bi) {
 void *bd_malloc(uint64_t nbytes) {
   int fk, k;
 
-  acquire(&lock);
+  // acquire(&lock);
 
   // Find a free block >= nbytes, starting with smallest k possible
   fk = firstk(nbytes);
@@ -127,7 +127,7 @@ void *bd_malloc(uint64_t nbytes) {
       break;
   }
   if (k >= nsizes) { // No free blocks?
-    release(&lock);
+    // release(&lock);
     return 0;
   }
 
@@ -142,7 +142,7 @@ void *bd_malloc(uint64_t nbytes) {
     bit_set(bd_sizes[k - 1].alloc, blk_index(k - 1, p));
     lst_push(&bd_sizes[k - 1].free, q);
   }
-  release(&lock);
+  // release(&lock);
 
   return p;
 }
@@ -163,7 +163,7 @@ void bd_free(void *p) {
   void *q;
   int k;
 
-  acquire(&lock);
+  // acquire(&lock);
   for (k = size(p); k < MAXSIZE; k++) {
     int bi = blk_index(k, p);
     int buddy = (bi % 2 == 0) ? bi + 1 : bi - 1;
@@ -182,7 +182,7 @@ void bd_free(void *p) {
     bit_clear(bd_sizes[k + 1].split, blk_index(k + 1, p));
   }
   lst_push(&bd_sizes[k].free, p);
-  release(&lock);
+  // release(&lock);
 }
 
 // Compute the first block at size k that doesn't contain p
