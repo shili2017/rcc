@@ -2,6 +2,7 @@
 
 #include "log.h"
 #include "mm.h"
+#include "string.h"
 
 void page_table_new(PageTable *pt) {
   PhysPageNum frame = frame_alloc();
@@ -72,3 +73,51 @@ PageTableEntry *page_table_translate(PageTable *pt, VirtPageNum vpn) {
 }
 
 uint64_t page_table_token(PageTable *pt) { return ((8L << 60) | pt->root_ppn); }
+
+void copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
+                      uint64_t len, uint64_t direction) {
+  if (direction != FROM_USER && direction != TO_USER) {
+    panic("Unknown direction in copy_byte_buffer.\n");
+  }
+
+  PageTable page_table;
+  page_table_from_token(&page_table, token);
+  uint64_t start = (uint64_t)user;
+  uint64_t end = start + len;
+  uint64_t kernel_i = 0;
+
+  VirtAddr start_va, end_va;
+  VirtPageNum vpn;
+  PhysPageNum ppn;
+  uint8_t *bytes_array;
+
+  while (start < end) {
+    start_va = (VirtAddr)start;
+    vpn = page_floor(start_va);
+    ppn = pte_ppn(*page_table_translate(&page_table, vpn));
+    vpn++;
+    end_va = (VirtAddr)pn2addr(vpn);
+    if ((VirtAddr)end < end_va) {
+      end_va = (VirtAddr)end;
+    }
+    bytes_array = ppn_get_bytes_array(ppn);
+    if (page_aligned(end_va)) {
+      if (direction == FROM_USER)
+        memcpy(kernel + kernel_i, bytes_array,
+               PAGE_SIZE - page_offset(start_va));
+      else
+        memcpy(bytes_array, kernel + kernel_i,
+               PAGE_SIZE - page_offset(start_va));
+      kernel_i += PAGE_SIZE - page_offset(start_va);
+    } else {
+      if (direction == FROM_USER)
+        memcpy(kernel + kernel_i, bytes_array + page_offset(start_va),
+               page_offset(end_va) - page_offset(start_va));
+      else
+        memcpy(bytes_array + page_offset(start_va), kernel + kernel_i,
+               page_offset(end_va) - page_offset(start_va));
+      kernel_i += page_offset(end_va) - page_offset(start_va);
+    }
+    start = (uint64_t)end_va;
+  }
+}

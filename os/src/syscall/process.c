@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "log.h"
+#include "mm.h"
 #include "stdio.h"
 #include "task.h"
 #include "timer.h"
@@ -26,8 +27,11 @@ int64_t sys_set_priority(int64_t prio) {
 }
 
 int64_t sys_get_time(TimeVal *ts, int64_t tz) {
+  TimeVal sys_ts;
   int64_t time_us = timer_get_time_us();
-  ts->sec = time_us / USEC_PER_SEC;
-  ts->usec = time_us % USEC_PER_SEC;
+  sys_ts.sec = time_us / USEC_PER_SEC;
+  sys_ts.usec = time_us % USEC_PER_SEC;
+  copy_byte_buffer(task_current_user_token(), (uint8_t *)&sys_ts, (uint8_t *)ts,
+                   sizeof(TimeVal), TO_USER);
   return 0;
 }

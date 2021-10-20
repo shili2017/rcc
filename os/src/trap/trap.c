@@ -7,7 +7,12 @@
 
 void trap_from_kernel() {
   // Currently we don't support in-kernel trap
-  panic("A trap from kernel!\n");
+
+  uint64_t scause = r_scause();
+  uint64_t stval = r_stval();
+
+  panic("A trap from kernel! (scause = 0x%llx, stval = 0x%llx)\n", scause,
+        stval);
 }
 
 static inline void set_kernel_trap_entry() {
