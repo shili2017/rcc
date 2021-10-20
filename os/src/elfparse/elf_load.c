@@ -8,14 +8,21 @@
 ** archive.
 */
 int elf_load(uint8_t *elf_data, size_t elf_size, t_elf *elf) {
-  int ret = 0;
   memset(elf, 0, sizeof(t_elf));
   elf->size = elf_size;
   elf->raw_data = elf_data;
 
-  ret |= elf_load_header(elf);
-  ret |= elf_load_sections(elf);
-  ret |= elf_load_programs(elf);
+  if (elf_load_header(elf) != 0) {
+    return -1;
+  }
 
-  return ret;
+  if (elf_load_sections(elf) != 0) {
+    return -1;
+  }
+
+  if (elf_load_programs(elf) != 0) {
+    return -1;
+  }
+
+  return 0;
 }
