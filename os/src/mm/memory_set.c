@@ -83,6 +83,17 @@ static void memory_set_insert_framed_area(MemorySet *memory_set,
   memory_set_push(memory_set, &map_area, NULL, 0);
 }
 
+void memory_set_free(MemorySet *memory_set) {
+  MapArea *area_ptr;
+  while (!vector_empty(&memory_set->areas)) {
+    area_ptr = (MapArea *)vector_back(&memory_set->areas);
+    map_area_unmap(area_ptr, &memory_set->page_table);
+    vector_pop(&memory_set->areas);
+  }
+  vector_free(&memory_set->areas);
+  page_table_free(&memory_set->page_table);
+}
+
 extern uint8_t stext;
 extern uint8_t etext;
 extern uint8_t srodata;

@@ -13,6 +13,8 @@ void frame_allocator_init() {
   vector_new(&FRAME_ALLOCATOR.recycled, sizeof(PhysPageNum));
 }
 
+void frame_allocator_free() { vector_free(&FRAME_ALLOCATOR.recycled); }
+
 PhysPageNum frame_alloc() {
   PhysPageNum ppn;
   if (!vector_empty(&FRAME_ALLOCATOR.recycled)) {

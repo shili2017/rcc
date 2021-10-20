@@ -26,13 +26,13 @@ void vector_push(struct vector *v, void *d) {
 
 void vector_pop(struct vector *v) {
   if (v->size == 0)
-    panic("empty vector pop");
+    panic("empty vector pop\n");
   v->size--;
 }
 
 void *vector_back(struct vector *v) {
   if (!v->size)
-    panic("empty vector back");
+    panic("empty vector back\n");
   return v->buffer + (v->size - 1) * v->dsize;
 }
 

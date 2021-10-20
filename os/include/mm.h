@@ -60,6 +60,7 @@ typedef uint64_t PageTableEntry;
 
 typedef struct {
   PhysPageNum root_ppn;
+  struct vector frames;
 } PageTable;
 
 typedef struct {
@@ -83,6 +84,7 @@ typedef struct {
 
 // mm.c
 void mm_init();
+void mm_free();
 void mm_remap_test();
 
 // address.c
@@ -95,11 +97,13 @@ void heap_allocator_init();
 
 // frame_allocator.c
 void frame_allocator_init();
+void frame_allocator_free();
 PhysPageNum frame_alloc();
 void frame_dealloc(PhysPageNum ppn);
 
 // page_table.c
 void page_table_new(PageTable *pt);
+void page_table_free(PageTable *pt);
 void page_table_from_token(PageTable *pt, uint64_t satp);
 PageTableEntry *page_table_find_pte_create(PageTable *pt, VirtPageNum vpn);
 PageTableEntry *page_table_find_pte(PageTable *pt, VirtPageNum vpn);
@@ -120,6 +124,7 @@ void memory_set_kernel_init();
 PageTableEntry *memory_set_translate(MemorySet *memory_set, VirtPageNum vpn);
 void kernel_space_insert_framed_area(VirtAddr start_va, VirtAddr end_va,
                                      MapPermission permission);
+void memory_set_free(MemorySet *memory_set);
 uint64_t kernel_space_token();
 void memory_set_remap_test();
 

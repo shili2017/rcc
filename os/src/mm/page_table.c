@@ -7,6 +7,18 @@
 void page_table_new(PageTable *pt) {
   PhysPageNum frame = frame_alloc();
   pt->root_ppn = frame;
+  vector_new(&pt->frames, sizeof(PhysPageNum));
+  vector_push(&pt->frames, &frame);
+}
+
+void page_table_free(PageTable *pt) {
+  PhysPageNum frame;
+  while (!vector_empty(&pt->frames)) {
+    frame = *(PhysPageNum *)vector_back(&pt->frames);
+    vector_pop(&pt->frames);
+    frame_dealloc(frame);
+  }
+  vector_free(&pt->frames);
 }
 
 void page_table_from_token(PageTable *pt, uint64_t satp) {
@@ -30,6 +42,7 @@ PageTableEntry *page_table_find_pte_create(PageTable *pt, VirtPageNum vpn) {
         return NULL;
       }
       *pte = pte_new(frame, PTE_V);
+      vector_push(&pt->frames, &frame);
     }
     ppn = pte_ppn(*pte);
   }

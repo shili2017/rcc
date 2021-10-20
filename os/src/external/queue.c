@@ -31,14 +31,14 @@ void queue_push(struct queue *q, void *d) {
 
 void queue_pop(struct queue *q) {
   if (q->size == 0)
-    panic("empty queue pop");
+    panic("empty queue pop\n");
   q->front = (q->front + 1) % q->capacity;
   q->size--;
 }
 
 void *queue_front(struct queue *q) {
   if (!q->size)
-    panic("empty queue front");
+    panic("empty queue front\n");
   return q->buffer + q->front * q->dsize;
 }
 

@@ -47,3 +47,7 @@ void task_control_block_new(uint8_t *elf_data, size_t elf_size, uint64_t app_id,
   s->priority = DEFAULT_PRIORITY;
   s->stride = 0;
 }
+
+void task_control_block_free(TaskControlBlock *s) {
+  memory_set_free(&s->memory_set);
+}

@@ -7,6 +7,11 @@ void mm_init() {
   memory_set_kernel_init();
 }
 
+void mm_free() {
+  // mm free
+  frame_allocator_free();
+}
+
 void mm_remap_test() {
   // mm remap_test
   memory_set_remap_test();

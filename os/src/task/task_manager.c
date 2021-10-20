@@ -1,5 +1,6 @@
 #include "loader.h"
 #include "log.h"
+#include "mm.h"
 #include "task.h"
 
 extern void __switch(const TaskContext **current_task_cx_ptr2,
@@ -31,6 +32,7 @@ void task_manager_mark_current_suspended() {
 
 void task_manager_mark_current_exited() {
   uint64_t current = TASK_MANAGER.current_task;
+  task_control_block_free(&TASK_MANAGER.tasks[current]);
   TASK_MANAGER.tasks[current].task_status = TASK_STATUS_EXITED;
 }
 
@@ -70,6 +72,7 @@ void task_manager_run_next_task() {
         get_task_cx_ptr2(&(TASK_MANAGER.tasks[next]));
     __switch(current_task_cx_ptr2, next_task_cx_ptr2);
   } else {
+    mm_free();
     panic("All applications completed!\n");
   }
 }

@@ -59,6 +59,7 @@ TrapContext *get_trap_cx(TaskControlBlock *s);
 uint64_t get_user_token(TaskControlBlock *s);
 void task_control_block_new(uint8_t *elf_data, size_t elf_size, uint64_t app_id,
                             TaskControlBlock *s);
+void task_control_block_free(TaskControlBlock *s);
 
 // task_manager.c
 void task_manager_init();
