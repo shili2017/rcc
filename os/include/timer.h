@@ -1,15 +1,13 @@
 #ifndef _TIMER_H_
 #define _TIMER_H_
 
-#define TICKS_PER_SEC 200
+#define TICKS_PER_SEC 100
 #define USEC_PER_SEC 1000000
 
-struct TimeVal {
+typedef struct {
   uint64_t sec;
   uint64_t usec;
-};
-
-typedef struct TimeVal TimeVal;
+} TimeVal;
 
 uint64_t timer_get_time();
 uint64_t timer_get_time_us();

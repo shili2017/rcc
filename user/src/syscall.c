@@ -26,10 +26,22 @@ int64_t exit(int exit_code) {
 
 int64_t yield() { return syscall(SYSCALL_YIELD, 0, 0, 0); }
 
+int64_t set_priority(int64_t prio) {
+  return syscall(SYSCALL_SET_PRIORITY, (uint64_t)prio, 0, 0);
+}
+
 int64_t get_time() {
   TimeVal time;
   if (syscall(SYSCALL_GET_TIME, (uint64_t)&time, 0, 0) == 0) {
     return (int64_t)((time.sec & 0xffff) * 1000 + time.usec / 1000);
   }
   return -1;
+}
+
+int64_t mmap(uint64_t start, uint64_t len, uint64_t prot) {
+  return syscall(SYSCALL_MMAP, start, len, prot);
+}
+
+int64_t munmap(uint64_t start, uint64_t len) {
+  return syscall(SYSCALL_MUNMAP, start, len, 0);
 }

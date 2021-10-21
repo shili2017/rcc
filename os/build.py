@@ -6,8 +6,8 @@ APP_PATH = '../user/src/bin'
 TARGET_PATH = '../user/build/'
 
 # Test
-# APP_PATH = '../../rCore_tutorial_tests/user/build/bin/'
-# TARGET_PATH = '../../rCore_tutorial_tests/user/build/bin/'
+# APP_PATH = '../../rCore_tutorial_tests/user/build/elf/'
+# TARGET_PATH = '../../rCore_tutorial_tests/user/build/elf/'
 
 if __name__ == '__main__':
   f = open('src/link_app.S', 'w')
@@ -35,7 +35,7 @@ _num_app:
   .global app_{0}_start
   .global app_{0}_end
 app_{0}_start:
-  .incbin "{2}{1}.bin"
+  .incbin "{2}{1}.elf"
 app_{0}_end:
 """.format(i, apps[i], TARGET_PATH)
     )
