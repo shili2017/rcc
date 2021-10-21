@@ -121,6 +121,17 @@ extern void console_putchar(char c);
 extern int64_t write(uint64_t fd, char *buf, uint64_t len);
 #endif
 
+// getchar for user
+#ifndef __KERNEL__
+extern int64_t read(uint64_t fd, char *buf);
+
+char getchar() {
+  char c[1];
+  read(FD_STDIN, c);
+  return c[0];
+}
+#endif
+
 // output function type
 typedef void (*out_fct_type)(char character, void *buffer, size_t idx,
                              size_t maxlen);

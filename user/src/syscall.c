@@ -16,6 +16,10 @@ static inline int64_t syscall(uint64_t id, uint64_t a0, uint64_t a1,
   return ret;
 }
 
+int64_t read(uint64_t fd, char *buf) {
+  return syscall(SYSCALL_READ, fd, (uint64_t)buf, 0);
+}
+
 int64_t write(uint64_t fd, char *buf, uint64_t len) {
   return syscall(SYSCALL_WRITE, fd, (uint64_t)buf, len);
 }
@@ -38,10 +42,48 @@ int64_t get_time() {
   return -1;
 }
 
+int64_t getpid() { return syscall(SYSCALL_GETPID, 0, 0, 0); }
+
+int64_t munmap(uint64_t start, uint64_t len) {
+  return syscall(SYSCALL_MUNMAP, start, len, 0);
+}
+
+int64_t fork() { return syscall(SYSCALL_FORK, 0, 0, 0); }
+
+int64_t exec(char *path) { return syscall(SYSCALL_EXEC, (uint64_t)path, 0, 0); }
+
 int64_t mmap(uint64_t start, uint64_t len, uint64_t prot) {
   return syscall(SYSCALL_MMAP, start, len, prot);
 }
 
-int64_t munmap(uint64_t start, uint64_t len) {
-  return syscall(SYSCALL_MUNMAP, start, len, 0);
+int64_t wait(int *exit_code) {
+  int64_t exit_pid;
+  while (1) {
+    exit_pid = syscall(SYSCALL_WAITPID, -1, (uint64_t)exit_code, 0);
+    if (exit_pid == -2) {
+      yield();
+    } else {
+      return exit_pid;
+    }
+  }
+}
+
+int64_t waitpid(int64_t pid, int *exit_code) {
+  int64_t exit_pid;
+  while (1) {
+    exit_pid = syscall(SYSCALL_WAITPID, (uint64_t)pid, (uint64_t)exit_code, 0);
+    if (exit_pid == -2) {
+      yield();
+    } else {
+      return exit_pid;
+    }
+  }
+}
+
+int64_t sleep(uint64_t period_ms) {
+  int64_t start = get_time();
+  while (get_time() < start + period_ms) {
+    yield();
+  }
+  return 0;
 }
