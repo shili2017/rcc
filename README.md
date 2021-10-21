@@ -2,13 +2,22 @@
 
 rCore-Tutorial-v3: https://github.com/rcore-os/rCore-Tutorial-v3
 
+rCore-Tutorial-Book-v3 (Chinese): https://rcore-os.github.io/rCore-Tutorial-Book-v3/
+
 ## Dependency
 
 - Toolchain: `riscv64-unknown-elf-*`
 
-- QEMU 5.0.0
+- Emulator: QEMU 5.0.0
 
 ## Getting Started
+
+To select a certain chapter,
+
+```
+git tag
+git checkout ch*
+```
 
 To build `rcc` kernel, enter `os` directory and then
 
@@ -96,7 +105,7 @@ Create `tasks.json` and `launch.json` under `.vscode` directory as follows.
 
 ## Acknowledgements
 
-`rcc` project is not built from scratch. During the development of `rcc`, part of the source code or ideas is referred from other online courses or open source projects, including
+`rcc` project is not built from scratch. During the development of `rcc`, part of the source code or ideas is referred from other online courses or open source projects.
 
 | Name              | GitHub                                            |
 | -                 | -                                                 |
