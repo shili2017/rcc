@@ -54,14 +54,15 @@ PageTableEntry *page_table_find_pte(PageTable *pt, VirtPageNum vpn) {
   vpn_indexes(vpn, idxs);
   PhysPageNum ppn = pt->root_ppn;
   PageTableEntry *result = NULL;
+  PageTableEntry *pte;
   for (unsigned i = 0; i < 3; i++) {
-    PageTableEntry *pte = ppn_get_pte_array(ppn) + idxs[i];
+    pte = ppn_get_pte_array(ppn) + idxs[i];
+    if (!pte_is_valid(*pte)) {
+      return NULL;
+    }
     if (i == 2) {
       result = pte;
       break;
-    }
-    if (!pte_is_valid(*pte)) {
-      return NULL;
     }
     ppn = pte_ppn(*pte);
   }
@@ -71,18 +72,20 @@ PageTableEntry *page_table_find_pte(PageTable *pt, VirtPageNum vpn) {
 void page_table_map(PageTable *pt, VirtPageNum vpn, PhysPageNum ppn,
                     PTEFlags flags) {
   PageTableEntry *pte = page_table_find_pte_create(pt, vpn);
-  assert(!pte_is_valid(*pte), "vpn 0x%llx is mapped before mapping\n", vpn);
+  assert(!pte_is_valid(*pte), "VPN 0x%llx is mapped before mapping.\n", vpn);
   *pte = pte_new(ppn, flags | PTE_V);
 }
 
 void page_table_unmap(PageTable *pt, VirtPageNum vpn) {
   PageTableEntry *pte = page_table_find_pte_create(pt, vpn);
-  assert(pte_is_valid(*pte), "vpn 0x%llx is invalid before unmapping\n", vpn);
+  assert(pte_is_valid(*pte), "VPN 0x%llx is invalid before unmapping.\n", vpn);
   *pte = pte_empty();
 }
 
 PageTableEntry *page_table_translate(PageTable *pt, VirtPageNum vpn) {
-  return page_table_find_pte(pt, vpn);
+  PageTableEntry *pte = page_table_find_pte(pt, vpn);
+  assert(pte, "Cannot find VPN 0x%llx in page table.\n", vpn);
+  return pte;
 }
 
 uint64_t page_table_token(PageTable *pt) { return ((8L << 60) | pt->root_ppn); }

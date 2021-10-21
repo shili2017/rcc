@@ -14,6 +14,10 @@ int64_t syscall(uint64_t syscall_id, uint64_t a0, uint64_t a1, uint64_t a2) {
     return sys_set_priority((int64_t)a0);
   case SYSCALL_GET_TIME:
     return sys_get_time((TimeVal *)a0, (int64_t)a1);
+  case SYSCALL_MMAP:
+    return sys_mmap(a0, a1, a2);
+  case SYSCALL_MUNMAP:
+    return sys_munmap(a0, a1);
   default:
     panic("Unsupported syscall_id: %lld\n", syscall_id);
     break;

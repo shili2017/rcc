@@ -258,6 +258,92 @@ void kernel_space_insert_framed_area(VirtAddr start_va, VirtAddr end_va,
 
 uint64_t kernel_space_token() { return memory_set_token(&KERNEL_SPACE); }
 
+int64_t memory_set_mmap(MemorySet *memory_set, uint64_t start, uint64_t len,
+                        uint64_t prot) {
+  if (len == 0) {
+    return 0;
+  }
+
+  if (!page_aligned(start) || (len > MMAP_MAX_SIZE) || ((prot & ~0x7) != 0) ||
+      ((prot & 0x7) == 0)) {
+    return -1;
+  }
+
+  len = page_ceil(len) * PAGE_SIZE;
+  VirtPageNum vpn_start = addr2pn(start);
+  VirtPageNum vpn_end = addr2pn(start + len);
+  PageTable *pt = &memory_set->page_table;
+
+  // check unmapped
+  for (VirtPageNum vpn = vpn_start; vpn < vpn_end; vpn++) {
+    if (page_table_find_pte(pt, vpn)) {
+      return -1;
+    }
+  }
+
+  MapPermission map_perm = MAP_PERM_U;
+  if ((prot & 0x1) != 0)
+    map_perm |= MAP_PERM_R;
+  if ((prot & 0x2) != 0)
+    map_perm |= MAP_PERM_W;
+  if ((prot & 0x4) != 0)
+    map_perm |= MAP_PERM_X;
+
+  // map
+  PhysPageNum ppn;
+  PTEFlags pte_flags;
+  for (VirtPageNum vpn = vpn_start; vpn < vpn_end; vpn++) {
+    ppn = frame_alloc();
+    pte_flags = (PTEFlags)(map_perm);
+    page_table_map(pt, vpn, ppn, pte_flags);
+  }
+
+  // check mapped
+  for (VirtPageNum vpn = vpn_start; vpn < vpn_end; vpn++) {
+    if (!page_table_find_pte(pt, vpn)) {
+      return -1;
+    }
+  }
+
+  return len;
+}
+
+int64_t memory_set_munmap(MemorySet *memory_set, uint64_t start, uint64_t len) {
+  if (len == 0) {
+    return 0;
+  }
+
+  if (!page_aligned(start) || (len > MMAP_MAX_SIZE)) {
+    return -1;
+  }
+
+  len = page_ceil(len) * PAGE_SIZE;
+  VirtPageNum vpn_start = addr2pn(start);
+  VirtPageNum vpn_end = addr2pn(start + len);
+  PageTable *pt = &memory_set->page_table;
+
+  // check mapped
+  for (VirtPageNum vpn = vpn_start; vpn < vpn_end; vpn++) {
+    if (!page_table_find_pte(pt, vpn)) {
+      return -1;
+    }
+  }
+
+  // unmap
+  for (VirtPageNum vpn = vpn_start; vpn < vpn_end; vpn++) {
+    page_table_unmap(pt, vpn);
+  }
+
+  // check unmapped
+  for (VirtPageNum vpn = vpn_start; vpn < vpn_end; vpn++) {
+    if (page_table_find_pte(pt, vpn)) {
+      return -1;
+    }
+  }
+
+  return len;
+}
+
 void memory_set_remap_test() {
   VirtAddr mid_text = (VirtAddr)(((uint64_t)&stext + (uint64_t)&etext) / 2);
   VirtAddr mid_rodata =

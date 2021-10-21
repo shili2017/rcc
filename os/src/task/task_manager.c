@@ -101,3 +101,8 @@ TrapContext *task_manager_get_current_trap_cx() {
   uint64_t current = TASK_MANAGER.current_task;
   return get_trap_cx(&TASK_MANAGER.tasks[current]);
 }
+
+MemorySet *task_manager_get_current_memory_set() {
+  uint64_t current = TASK_MANAGER.current_task;
+  return &TASK_MANAGER.tasks[current].memory_set;
+}

@@ -56,3 +56,8 @@ TrapContext *task_current_trap_cx() {
   // Task current_trap_cx
   return task_manager_get_current_trap_cx();
 }
+
+MemorySet *task_current_memory_set() {
+  // Task current_memory_set
+  return task_manager_get_current_memory_set();
+}

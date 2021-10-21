@@ -52,6 +52,7 @@ uint64_t task_get_current_task();
 void task_set_priority(int64_t prio);
 uint64_t task_current_user_token();
 TrapContext *task_current_trap_cx();
+MemorySet *task_current_memory_set();
 
 // task_control_block.c
 const TaskContext **get_task_cx_ptr2(TaskControlBlock *s);
@@ -72,6 +73,7 @@ uint64_t task_manager_get_current_task();
 void task_manager_set_priority(int64_t prio);
 uint64_t task_manager_get_current_token();
 TrapContext *task_manager_get_current_trap_cx();
+MemorySet *task_manager_get_current_memory_set();
 
 // task_context.c
 void task_context_goto_trap_return(TaskContext *cx);

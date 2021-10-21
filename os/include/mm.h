@@ -8,6 +8,8 @@
 #include "config.h"
 #include "external.h"
 
+#define MMAP_MAX_SIZE (1 << 30) // 1 GB
+
 #define page_floor(x) ((x) / PAGE_SIZE)
 #define page_ceil(x) (((x)-1 + PAGE_SIZE) / PAGE_SIZE)
 #define page_offset(x) ((x) & (PAGE_SIZE - 1))
@@ -82,6 +84,20 @@ typedef struct {
   struct vector areas;
 } MemorySet;
 
+/*  Data structure in rcc memory management
+ *
+ *  MemorySet
+ *    ├── PageTable
+ *    │     ├── Root PPN
+ *    │     └── Vector of PPN frames
+ *    └── Vector of MapArea
+ *                    ├── VPN Range
+ *                    │     ├── VPN l
+ *                    │     └── VPN r
+ *                    ├── MapType (Identical / Framed)
+ *                    └── MapPermission (R / W / X / U)
+ */
+
 // mm.c
 void mm_init();
 void mm_free();
@@ -121,11 +137,14 @@ void memory_set_from_elf(MemorySet *memory_set, uint8_t *elf_data,
                          size_t elf_size, uint64_t *user_sp,
                          uint64_t *entry_point);
 void memory_set_kernel_init();
+void memory_set_free(MemorySet *memory_set);
 PageTableEntry *memory_set_translate(MemorySet *memory_set, VirtPageNum vpn);
 void kernel_space_insert_framed_area(VirtAddr start_va, VirtAddr end_va,
                                      MapPermission permission);
-void memory_set_free(MemorySet *memory_set);
 uint64_t kernel_space_token();
+int64_t memory_set_mmap(MemorySet *memory_set, uint64_t start, uint64_t len,
+                        uint64_t prot);
+int64_t memory_set_munmap(MemorySet *memory_set, uint64_t start, uint64_t len);
 void memory_set_remap_test();
 
 #endif // _MM_H_
