@@ -107,11 +107,13 @@ Create `tasks.json` and `launch.json` under `.vscode` directory as follows.
 
 `rcc` project is not built from scratch. During the development of `rcc`, part of the source code or ideas is referred from other online courses or open source projects.
 
-| Name              | GitHub                                            |
+| Name              | Git                                               |
 | -                 | -                                                 |
 | rCore             | https://github.com/rcore-os/rCore                 |
 | uCore             | https://github.com/DeathWish5/ucore-Tutorial      |
 | xv6-riscv         | https://github.com/mit-pdos/xv6-riscv-fall19      |
 | Abstract Machine  | https://github.com/NJU-ProjectN/abstract-machine  |
 | TestOS            | https://github.com/ZimingYuan/testos              |
+| glibc             | https://sourceware.org/git/glibc.git              |
+| printf            | https://github.com/mpaland/printf                 |
 | Elfparse          | https://github.com/DBarthe/Elfparse               |
