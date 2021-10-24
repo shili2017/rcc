@@ -9,7 +9,7 @@
 
 int64_t sys_exit(int exit_code) {
   info("Application exited with code %d\n", exit_code);
-  task_exit_current_and_run_next();
+  task_exit_current_and_run_next(exit_code);
   panic("Unreachable in sys_exit!\n");
   return 0;
 }
@@ -37,12 +37,32 @@ int64_t sys_get_time(TimeVal *ts, int64_t tz) {
   return 0;
 }
 
-int64_t sys_mmap(uint64_t start, uint64_t len, uint64_t prot) {
-  MemorySet *memory_set = task_current_memory_set();
-  return memory_set_mmap(memory_set, start, len, prot);
+int64_t sys_getpid() {
+  // todo
+  // implement me
 }
 
 int64_t sys_munmap(uint64_t start, uint64_t len) {
   MemorySet *memory_set = task_current_memory_set();
   return memory_set_munmap(memory_set, start, len);
+}
+
+int64_t sys_fork() {
+  // todo
+  // implement me
+}
+
+int64_t sys_exec(char *path) {
+  // todo
+  // implement me
+}
+
+int64_t sys_mmap(uint64_t start, uint64_t len, uint64_t prot) {
+  MemorySet *memory_set = task_current_memory_set();
+  return memory_set_mmap(memory_set, start, len, prot);
+}
+
+int64_t sys_waitpid(int64_t pid, int *exit_code_ptr) {
+  // todo
+  // implement me
 }

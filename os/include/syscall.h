@@ -26,7 +26,11 @@ int64_t sys_exit(int exit_code);
 int64_t sys_yield();
 int64_t sys_set_priority(int64_t prio);
 int64_t sys_get_time(TimeVal *ts, int64_t tz);
-int64_t sys_mmap(uint64_t start, uint64_t len, uint64_t prot);
+int64_t sys_getpid();
 int64_t sys_munmap(uint64_t start, uint64_t len);
+int64_t sys_fork();
+int64_t sys_exec(char *path);
+int64_t sys_mmap(uint64_t start, uint64_t len, uint64_t prot);
+int64_t sys_waitpid(int64_t pid, int *exit_code_ptr);
 
 #endif // _SYSCALL_H_
