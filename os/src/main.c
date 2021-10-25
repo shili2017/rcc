@@ -2,8 +2,6 @@
 
 #include "loader.h"
 #include "log.h"
-#include "sbi.h"
-#include "stdio.h"
 #include "task.h"
 #include "timer.h"
 #include "trap.h"
@@ -23,9 +21,9 @@ void main() {
 
   mm_init();
 
-  info("Back to world!\n");
-
   mm_remap_test();
+
+  task_add_initproc();
 
   trap_init();
 
@@ -33,9 +31,9 @@ void main() {
 
   timer_set_next_trigger();
 
-  task_init();
+  loader_init_and_list_apps();
 
-  task_run_first_task();
+  processor_run_tasks();
 
   panic("Unreachable in main!\n");
 }

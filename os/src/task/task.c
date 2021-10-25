@@ -1,63 +1,58 @@
 #include "task.h"
+#include "loader.h"
+
+static TaskControlBlock INITPROC;
 
 void task_init() {
-  // Task init
-  task_manager_init();
+  task_control_block_new(&INITPROC, loader_get_app_data_by_name("initproc"),
+                         loader_get_app_size_by_name("initproc"));
 }
 
-void task_run_first_task() {
-  // Task run_first_task
-  task_manager_run_first_task();
-}
-
-void task_run_next_task() {
-  // Task run_next_task
-  task_manager_run_next_task();
-}
-
-void task_mark_current_suspended() {
-  // Task mark_current_suspended
-  task_manager_mark_current_suspended();
-}
-
-void task_mark_current_exited() {
-  // Task mark_current_exited
-  task_manager_mark_current_exited();
-}
+void task_add_initproc() { task_manager_add_task(&INITPROC); }
 
 void task_suspend_current_and_run_next() {
-  // Task suspend_current_and_run_next
-  task_mark_current_suspended();
-  task_run_next_task();
+  // There must be an application running.
+  TaskControlBlock *task = processor_take_current_task();
+  TaskContext *task_cx_ptr = &task->task_cx;
+
+  // Change status to Ready
+  task->task_status = TASK_STATUS_READY;
+
+  // push back to ready queue
+  task_manager_add_task(task);
+
+  // jump to scheduling cycle
+  processor_schedule(task_cx_ptr);
 }
 
-void task_exit_current_and_run_next() {
-  // Task exit_current_and_run_next
-  task_mark_current_exited();
-  task_run_next_task();
-}
+void task_exit_current_and_run_next(int exit_code) {
+  // take from Processor
+  TaskControlBlock *task = processor_take_current_task();
 
-uint64_t task_get_current_task() {
-  // Task get_current_task
-  return task_manager_get_current_task();
-}
+  // Change status to Zombie
+  task->task_status = TASK_STATUS_ZOMBIE;
 
-void task_set_priority(int64_t prio) {
-  // Task set_priority
-  task_manager_set_priority(prio);
-}
+  // Record exit code
+  task->exit_code = exit_code;
+  // do not move to its parent but under initproc
 
-uint64_t task_current_user_token() {
-  // Task current_token
-  return task_manager_get_current_token();
-}
+  TaskControlBlock *x = (TaskControlBlock *)(task->children.buffer);
+  for (uint64_t i = 0; i < task->children.size; i++) {
+    x[i].parent = &INITPROC;
+    vector_push(&INITPROC.children, &x[i]);
+  }
+  vector_free(&task->children);
 
-TrapContext *task_current_trap_cx() {
-  // Task current_trap_cx
-  return task_manager_get_current_trap_cx();
+  // deallocate user space
+  memory_set_recycle_data_pages(&task->memory_set);
+
+  // we do not have to save task context
+  TaskContext _unused;
+  task_context_zero_init(&_unused);
+  processor_schedule(&_unused);
 }
 
 MemorySet *task_current_memory_set() {
-  // Task current_memory_set
-  return task_manager_get_current_memory_set();
+  TaskControlBlock *task = processor_take_current_task();
+  return &task->memory_set;
 }

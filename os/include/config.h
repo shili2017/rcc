@@ -17,6 +17,7 @@
 #define APP_SIZE_LIMIT 0x20000
 
 #define MAX_APP_NUM 16
+#define MAX_APP_NAME_LENGTH 32
 
 // kernel stack in kernel space
 #define kernel_stack_position_top(x)                                           \

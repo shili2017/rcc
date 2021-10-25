@@ -35,7 +35,7 @@ PhysPageNum frame_alloc() {
 void frame_dealloc(PhysPageNum ppn) {
   bool in_recycled = false;
   PhysPageNum *x = (PhysPageNum *)(FRAME_ALLOCATOR.recycled.buffer);
-  for (unsigned i = 0; i < FRAME_ALLOCATOR.recycled.size; i++) {
+  for (uint64_t i = 0; i < FRAME_ALLOCATOR.recycled.size; i++) {
     if (x[i] == ppn) {
       in_recycled = true;
       break;

@@ -39,3 +39,11 @@ void *vector_back(struct vector *v) {
 int vector_empty(struct vector *v) { return !v->size; }
 
 void vector_free(struct vector *v) { bd_free(v->buffer); }
+
+void vector_remove(struct vector *v, uint64_t idx) {
+  if (idx >= v->size)
+    panic("invalid idx in vector remove\n");
+  memmove(v->buffer + idx * v->dsize, v->buffer + (idx + 1) * v->dsize,
+          (v->size - idx - 1) * v->dsize);
+  v->size--;
+}

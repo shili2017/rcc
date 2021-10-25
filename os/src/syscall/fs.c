@@ -11,8 +11,8 @@ int64_t sys_write(uint64_t fd, char *buf, uint64_t len) {
 
   switch (fd) {
   case FD_STDOUT:
-    copy_byte_buffer(task_current_user_token(), sys_write_buf, (uint8_t *)buf,
-                     len, FROM_USER);
+    copy_byte_buffer(processor_current_user_token(), sys_write_buf,
+                     (uint8_t *)buf, len, FROM_USER);
     for (uint64_t i = 0; i < len; i++) {
       console_putchar(sys_write_buf[i]);
     }
@@ -40,7 +40,7 @@ int64_t sys_read(uint64_t fd, char *buf, uint64_t len) {
       }
     }
     ch = (uint8_t)c;
-    copy_byte_buffer(task_current_user_token(), &ch, (uint8_t *)buf, 1,
+    copy_byte_buffer(processor_current_user_token(), &ch, (uint8_t *)buf, 1,
                      TO_USER);
     return 1;
   default:
