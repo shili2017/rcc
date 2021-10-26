@@ -6,14 +6,14 @@ APP_PATH = '../user/src/bin/'
 TARGET_PATH = '../user/build/'
 
 # Tutorial
-APP_PATH = '../../rCore-Tutorial-v3/user/src/bin/'
-TARGET_PATH = '../../rCore-Tutorial-v3/user/target/riscv64gc-unknown-none-elf/release/'
+# APP_PATH = '../../rCore-Tutorial-v3/user/src/bin/'
+# TARGET_PATH = '../../rCore-Tutorial-v3/user/target/riscv64gc-unknown-none-elf/release/'
 
 # Test
 # APP_PATH = '../../rCore_tutorial_tests/user/build/elf/'
 # TARGET_PATH = '../../rCore_tutorial_tests/user/build/elf/'
 
-ELF_SUFFIX = ""
+ELF_SUFFIX = ".elf"
 
 if __name__ == '__main__':
   f = open('src/link_app.S', 'w')
