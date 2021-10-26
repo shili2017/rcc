@@ -23,15 +23,17 @@ void main() {
 
   mm_remap_test();
 
-  task_add_initproc();
-
   trap_init();
+
+  loader_init_and_list_apps();
+
+  task_init();
+
+  task_add_initproc();
 
   trap_enable_timer_interrupt();
 
   timer_set_next_trigger();
-
-  loader_init_and_list_apps();
 
   processor_run_tasks();
 

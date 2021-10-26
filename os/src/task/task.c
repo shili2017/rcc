@@ -4,6 +4,7 @@
 static TaskControlBlock INITPROC;
 
 void task_init() {
+  task_manager_new();
   task_control_block_new(&INITPROC, loader_get_app_data_by_name("initproc"),
                          loader_get_app_size_by_name("initproc"));
 }

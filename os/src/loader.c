@@ -34,7 +34,7 @@ static char APP_NAMES[MAX_APP_NUM][MAX_APP_NAME_LENGTH];
 void loader_init_and_list_apps() {
   extern uint64_t _app_names;
   uint64_t num_app = loader_get_num_app();
-  uint8_t *ptr = (uint8_t *)_app_names;
+  uint8_t *ptr = (uint8_t *)&_app_names;
 
   info("/**** APPS ****\n");
   for (uint64_t i = 0; i < num_app; i++) {

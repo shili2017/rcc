@@ -71,9 +71,7 @@ void task_control_block_exec(TaskControlBlock *s, uint8_t *elf_data,
 }
 
 TaskControlBlock *task_control_block_fork(TaskControlBlock *parent) {
-  TaskControlBlock new_task =
-      *(TaskControlBlock *)bd_malloc(sizeof(TaskControlBlock));
-  TaskControlBlock *s = &new_task;
+  TaskControlBlock *s = (TaskControlBlock *)bd_malloc(sizeof(TaskControlBlock));
 
   // copy user space (include trap context)
   memory_set_from_existed_user(&s->memory_set, &parent->memory_set);

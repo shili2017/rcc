@@ -70,7 +70,7 @@ int64_t sys_fork() {
 int64_t sys_exec(char *path) {
   char app_name[MAX_APP_NAME_LENGTH];
   copy_byte_buffer(processor_current_user_token(), (uint8_t *)app_name,
-                   (uint8_t *)path, strlen(path) + 1, FROM_USER);
+                   (uint8_t *)path, MAX_APP_NAME_LENGTH, FROM_USER);
 
   uint8_t *data = loader_get_app_data_by_name(app_name);
   size_t size = loader_get_app_size_by_name(app_name);

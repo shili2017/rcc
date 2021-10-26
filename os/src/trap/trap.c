@@ -95,7 +95,6 @@ void trap_return() {
   uint64_t user_satp = processor_current_user_token();
   uint64_t restore_va = (uint64_t)__restore - (uint64_t)__alltraps + TRAMPOLINE;
   asm volatile("fence.i");
-  asm volatile("");
   asm volatile("mv x10, %1\n"
                "mv x11, %2\n"
                "jr %0\n"
