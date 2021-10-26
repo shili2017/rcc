@@ -13,9 +13,8 @@
 
 int main() {
   static char line[LINE_LENGTH];
-  uint64_t i = 0;
   char c;
-  int64_t pid, exit_pid;
+  int64_t i = 0, pid, exit_pid;
   int exit_code;
 
   memset(line, 0, LINE_LENGTH);
@@ -28,7 +27,7 @@ int main() {
     case LF:
     case CR:
       printf("\n");
-      if (strlen(line) > 0) {
+      if (i > 0) {
         line[i] = '\0';
         i++;
         pid = fork();
@@ -54,16 +53,19 @@ int main() {
       break;
     case BS:
     case DL:
-      if (strlen(line) > 0) {
+      if (i > 0) {
         printf("%c", (char)BS);
         printf(" ");
         printf("%c", (char)BS);
+        line[i] = '\0';
         i--;
       }
+      break;
     default:
       printf("%c", c);
       line[i] = c;
       i++;
+      break;
     }
   }
 
