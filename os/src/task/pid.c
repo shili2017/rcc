@@ -4,7 +4,7 @@
 static PidAllocator PID_ALLOCATOR;
 
 void pid_allocator_init() {
-  PID_ALLOCATOR.current = 0;
+  PID_ALLOCATOR.current = 1;
   vector_new(&PID_ALLOCATOR.recycled, sizeof(PidHandle));
 }
 

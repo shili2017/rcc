@@ -73,14 +73,12 @@ MemorySet *task_current_memory_set();
 // task_control_block.c
 TrapContext *task_control_block_get_trap_cx(TaskControlBlock *s);
 uint64_t task_control_block_get_user_token(TaskControlBlock *s);
-TaskStatus task_control_block_get_status(TaskControlBlock *s);
 void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
                             size_t elf_size);
 void task_control_block_free(TaskControlBlock *s);
 void task_control_block_exec(TaskControlBlock *s, uint8_t *elf_data,
                              size_t elf_size);
 TaskControlBlock *task_control_block_fork(TaskControlBlock *parent);
-uint64_t task_control_block_getpid(TaskControlBlock *s);
 
 // task_manager.c
 void task_manager_new();

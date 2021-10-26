@@ -9,10 +9,6 @@ uint64_t task_control_block_get_user_token(TaskControlBlock *s) {
   return memory_set_token(&s->memory_set);
 }
 
-TaskStatus task_control_block_get_status(TaskControlBlock *s) {
-  return s->task_status;
-}
-
 void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
                             size_t elf_size) {
   // memory_set with elf program headers/trampoline/trap context/user stack
@@ -94,15 +90,11 @@ TaskControlBlock *task_control_block_fork(TaskControlBlock *parent) {
   s->stride = parent->stride;
 
   // add child
-  vector_push(&parent->children, s);
+  vector_push(&parent->children, &s);
 
   // prepare TrapContext in user space
   TrapContext *trap_cx = task_control_block_get_trap_cx(s);
   trap_cx->kernel_sp = kernel_stack_top;
 
   return s;
-}
-
-uint64_t task_control_block_getpid(TaskControlBlock *s) {
-  return (uint64_t)s->pid;
 }

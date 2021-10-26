@@ -4,6 +4,7 @@
 static TaskControlBlock INITPROC;
 
 void task_init() {
+  pid_allocator_init();
   task_manager_new();
   task_control_block_new(&INITPROC, loader_get_app_data_by_name("initproc"),
                          loader_get_app_size_by_name("initproc"));
@@ -37,10 +38,10 @@ void task_exit_current_and_run_next(int exit_code) {
   task->exit_code = exit_code;
   // do not move to its parent but under initproc
 
-  TaskControlBlock *x = (TaskControlBlock *)(task->children.buffer);
+  TaskControlBlock **x = (TaskControlBlock **)(task->children.buffer);
   for (uint64_t i = 0; i < task->children.size; i++) {
-    x[i].parent = &INITPROC;
-    vector_push(&INITPROC.children, &x[i]);
+    x[i]->parent = &INITPROC;
+    vector_push(&INITPROC.children, x[i]);
   }
   vector_free(&task->children);
 

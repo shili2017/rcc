@@ -98,13 +98,13 @@ int64_t sys_waitpid(int64_t pid, int *exit_code_ptr) {
   uint64_t found_idx;
   PidHandle found_pid;
   int exit_code;
-  TaskControlBlock *x = (TaskControlBlock *)(task->children.buffer);
+  TaskControlBlock **x = (TaskControlBlock **)(task->children.buffer);
   for (uint64_t i = 0; i < task->children.size; i++) {
-    if (x[i].pid == task_control_block_getpid(&x[i]) || x[i].pid == -1) {
+    if (pid == x[i]->pid || pid == -1) {
       found = true;
       found_idx = i;
-      found_pid = x[i].pid;
-      exit_code = x[i].exit_code;
+      found_pid = x[i]->pid;
+      exit_code = x[i]->exit_code;
       break;
     }
   }
@@ -112,7 +112,7 @@ int64_t sys_waitpid(int64_t pid, int *exit_code_ptr) {
     return -1;
   }
 
-  if (x[found_idx].task_status == TASK_STATUS_ZOMBIE) {
+  if (x[found_idx]->task_status == TASK_STATUS_ZOMBIE) {
     vector_remove(&task->children, found_idx);
     copy_byte_buffer(memory_set_token(&task->memory_set), (uint8_t *)&exit_code,
                      (uint8_t *)exit_code_ptr, sizeof(int), TO_USER);
