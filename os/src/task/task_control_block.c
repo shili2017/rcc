@@ -43,7 +43,6 @@ void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
 
 void task_control_block_free(TaskControlBlock *s) {
   s->task_status = TASK_STATUS_EXITED;
-  kernel_stack_free(&s->kernel_stack);
   pid_dealloc(s->pid);
   bd_free(s);
 }

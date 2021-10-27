@@ -22,14 +22,15 @@ static void map_area_map_one(MapArea *map_area, PageTable *pt,
   PTEFlags pte_flags = (PTEFlags)(map_area->map_perm);
   page_table_map(pt, vpn, ppn, pte_flags);
   vector_push(&pt->frames, &ppn);
-  debug("Map vpn=0x%llx to ppn=0x%llx\n", vpn, ppn);
 }
 
 static void map_area_unmap_one(MapArea *map_area, PageTable *pt,
-                               VirtPageNum vpn) {
+                               VirtPageNum vpn, bool dealloc) {
   PhysPageNum ppn = pte_ppn(*page_table_translate(pt, vpn));
   page_table_unmap(pt, vpn);
-  debug("Unmap vpn=0x%llx to ppn=0x%llx\n", vpn, ppn);
+  if (dealloc) {
+    frame_dealloc(ppn);
+  }
 }
 
 static void map_area_map(MapArea *map_area, PageTable *pt) {
@@ -39,10 +40,10 @@ static void map_area_map(MapArea *map_area, PageTable *pt) {
   }
 }
 
-static void map_area_unmap(MapArea *map_area, PageTable *pt) {
+static void map_area_unmap(MapArea *map_area, PageTable *pt, bool dealloc) {
   for (VirtPageNum vpn = map_area->vpn_range.l; vpn < map_area->vpn_range.r;
        vpn++) {
-    map_area_unmap_one(map_area, pt, vpn);
+    map_area_unmap_one(map_area, pt, vpn, dealloc);
   }
 }
 
@@ -100,7 +101,7 @@ static void memory_set_remove_area_with_start_vpn(MemorySet *memory_set,
   uint64_t i = 0;
   while (i < memory_set->areas.size) {
     if (x[i].vpn_range.l == start_vpn) {
-      map_area_unmap(&x[i], &memory_set->page_table);
+      map_area_unmap(&x[i], &memory_set->page_table, true);
       vector_remove(&memory_set->areas, i);
     } else {
       i++;
@@ -109,11 +110,9 @@ static void memory_set_remove_area_with_start_vpn(MemorySet *memory_set,
 }
 
 void memory_set_free(MemorySet *memory_set) {
-  MapArea *area_ptr;
-  while (!vector_empty(&memory_set->areas)) {
-    area_ptr = (MapArea *)vector_back(&memory_set->areas);
-    map_area_unmap(area_ptr, &memory_set->page_table);
-    vector_pop(&memory_set->areas);
+  MapArea *x = (MapArea *)(memory_set->areas.buffer);
+  for (uint64_t i = 0; i < memory_set->areas.size; i++) {
+    map_area_unmap(&x[i], &memory_set->page_table, false);
   }
   vector_free(&memory_set->areas);
   page_table_free(&memory_set->page_table);

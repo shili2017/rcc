@@ -58,3 +58,13 @@ uint64_t frame_remaining_pages() {
   uint64_t y = (uint64_t)FRAME_ALLOCATOR.recycled.size;
   return x + y;
 }
+
+void frame_allocator_print() {
+  PhysPageNum *x = (PhysPageNum *)(FRAME_ALLOCATOR.recycled.buffer);
+  printf("FRAME_ALLOCATOR current = %llx, recycled = [ ",
+         FRAME_ALLOCATOR.current);
+  for (uint64_t i = 0; i < FRAME_ALLOCATOR.recycled.size; i++) {
+    printf("%llx ", x[i]);
+  }
+  printf("]\n");
+}

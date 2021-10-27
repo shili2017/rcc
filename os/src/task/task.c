@@ -48,6 +48,9 @@ void task_exit_current_and_run_next(int exit_code) {
   // deallocate user space
   memory_set_recycle_data_pages(&task->memory_set);
 
+  // deallocate kernel stack
+  kernel_stack_free(&task->kernel_stack);
+
   // we do not have to save task context
   TaskContext _unused;
   task_context_zero_init(&_unused);

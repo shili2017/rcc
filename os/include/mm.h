@@ -111,6 +111,7 @@ void frame_allocator_free();
 PhysPageNum frame_alloc();
 void frame_dealloc(PhysPageNum ppn);
 uint64_t frame_remaining_pages();
+void frame_allocator_print();
 
 // page_table.c
 void page_table_new(PageTable *pt);

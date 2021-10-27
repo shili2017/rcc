@@ -16,7 +16,6 @@ void page_table_free(PageTable *pt) {
   while (!vector_empty(&pt->frames)) {
     frame = *(PhysPageNum *)vector_back(&pt->frames);
     vector_pop(&pt->frames);
-    debug("Dealloc ppn=0x%llx in page_table_free\n", frame);
     frame_dealloc(frame);
   }
   vector_free(&pt->frames);
