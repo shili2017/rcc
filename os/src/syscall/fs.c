@@ -29,7 +29,7 @@ int64_t sys_read(uint64_t fd, char *buf, uint64_t len) {
   uint8_t ch;
   switch (fd) {
   case FD_STDIN:
-    assert(len != 1, "Only support len = 1 in sys_read!\n");
+    assert(len == 1, "Only support len = 1 in sys_read!\n");
     while (1) {
       c = console_getchar();
       if (c == 0) {
