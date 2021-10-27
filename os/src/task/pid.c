@@ -29,7 +29,7 @@ PidHandle pid_alloc() {
 
 void pid_dealloc(PidHandle pid) {
   bool in_recycled = false;
-  PidHandle *x = (PidHandle *)(&PID_ALLOCATOR.recycled.buffer);
+  PidHandle *x = *(PidHandle **)(&PID_ALLOCATOR.recycled.buffer);
   for (uint64_t i = 0; i < PID_ALLOCATOR.recycled.size; i++) {
     if (x[i] == pid) {
       in_recycled = true;
@@ -40,6 +40,15 @@ void pid_dealloc(PidHandle pid) {
     panic("Pid=%llx has not been allocated!\n", pid);
   }
   vector_push(&PID_ALLOCATOR.recycled, &pid);
+}
+
+void pid_allocator_print() {
+  printf("Pid allocator current = %lld recycled = [ ", PID_ALLOCATOR.current);
+  PidHandle *x = *(PidHandle **)(&PID_ALLOCATOR.recycled.buffer);
+  for (uint64_t i = 0; i < PID_ALLOCATOR.recycled.size; i++) {
+    printf("%lld ", x[i]);
+  }
+  printf("]\n");
 }
 
 extern MemorySet KERNEL_SPACE;

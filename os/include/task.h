@@ -88,6 +88,7 @@ void pid_allocator_init();
 void pid_allocator_free();
 PidHandle pid_alloc();
 void pid_dealloc(PidHandle pid);
+void pid_allocator_print();
 void kernel_stack_new(KernelStack *ks, PidHandle pid);
 void kernel_stack_free(KernelStack *ks);
 uint64_t kernel_stack_get_top(KernelStack *ks);
