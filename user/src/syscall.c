@@ -17,7 +17,7 @@ static inline int64_t syscall(uint64_t id, uint64_t a0, uint64_t a1,
 }
 
 int64_t read(uint64_t fd, char *buf) {
-  return syscall(SYSCALL_READ, fd, (uint64_t)buf, 0);
+  return syscall(SYSCALL_READ, fd, (uint64_t)buf, 1);
 }
 
 int64_t write(uint64_t fd, char *buf, uint64_t len) {
