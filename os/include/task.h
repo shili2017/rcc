@@ -11,6 +11,7 @@
 #define TASK_STATUS_READY 0
 #define TASK_STATUS_RUNNING 1
 #define TASK_STATUS_ZOMBIE 2
+#define TASK_STATUS_EXITED 3
 
 #define BIG_STRIDE 100000
 #define MAX_PRIORITY 32
@@ -18,11 +19,6 @@
 
 typedef uint64_t PidHandle;
 typedef uint64_t TaskStatus;
-
-typedef struct {
-  PidHandle current;
-  struct vector recycled;
-} PidAllocator;
 
 typedef struct {
   PidHandle pid;
@@ -53,11 +49,6 @@ struct TaskControlBlock {
   uint64_t priority;
   uint64_t stride;
 };
-
-typedef struct {
-  TaskControlBlock *current;
-  TaskContext idle_task_cx;
-} Processor;
 
 typedef struct {
   struct queue ready_queue;

@@ -42,8 +42,10 @@ void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
 }
 
 void task_control_block_free(TaskControlBlock *s) {
-  memory_set_free(&s->memory_set);
-  vector_free(&s->children);
+  s->task_status = TASK_STATUS_EXITED;
+  kernel_stack_free(&s->kernel_stack);
+  pid_dealloc(s->pid);
+  bd_free(s);
 }
 
 void task_control_block_exec(TaskControlBlock *s, uint8_t *elf_data,
@@ -51,6 +53,8 @@ void task_control_block_exec(TaskControlBlock *s, uint8_t *elf_data,
   // memory_set with elf program headers/trampoline/trap context/user stack
   uint64_t user_sp;
   uint64_t entry_point;
+  memory_set_free(&s->memory_set);
+
   // substitute memory_set
   memory_set_from_elf(&s->memory_set, elf_data, elf_size, &user_sp,
                       &entry_point);

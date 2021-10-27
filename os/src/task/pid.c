@@ -1,6 +1,11 @@
 #include "log.h"
 #include "task.h"
 
+typedef struct {
+  PidHandle current;
+  struct vector recycled;
+} PidAllocator;
+
 static PidAllocator PID_ALLOCATOR;
 
 void pid_allocator_init() {

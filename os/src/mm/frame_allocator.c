@@ -4,6 +4,12 @@
 #include "mm.h"
 #include "string.h"
 
+typedef struct {
+  PhysPageNum current;
+  PhysPageNum end;
+  struct vector recycled;
+} StackFrameAllocator;
+
 static StackFrameAllocator FRAME_ALLOCATOR;
 
 void frame_allocator_init() {
@@ -45,4 +51,10 @@ void frame_dealloc(PhysPageNum ppn) {
     panic("Frame ppn=%llx has not been allocated!\n", ppn);
   }
   vector_push(&FRAME_ALLOCATOR.recycled, &ppn);
+}
+
+uint64_t frame_remaining_pages() {
+  uint64_t x = (uint64_t)(FRAME_ALLOCATOR.end - FRAME_ALLOCATOR.current);
+  uint64_t y = (uint64_t)FRAME_ALLOCATOR.recycled.size;
+  return x + y;
 }

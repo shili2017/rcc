@@ -21,11 +21,15 @@ static void map_area_map_one(MapArea *map_area, PageTable *pt,
   }
   PTEFlags pte_flags = (PTEFlags)(map_area->map_perm);
   page_table_map(pt, vpn, ppn, pte_flags);
+  vector_push(&pt->frames, &ppn);
+  debug("Map vpn=0x%llx to ppn=0x%llx\n", vpn, ppn);
 }
 
 static void map_area_unmap_one(MapArea *map_area, PageTable *pt,
                                VirtPageNum vpn) {
+  PhysPageNum ppn = pte_ppn(*page_table_translate(pt, vpn));
   page_table_unmap(pt, vpn);
+  debug("Unmap vpn=0x%llx to ppn=0x%llx\n", vpn, ppn);
 }
 
 static void map_area_map(MapArea *map_area, PageTable *pt) {
@@ -350,6 +354,7 @@ int64_t memory_set_mmap(MemorySet *memory_set, uint64_t start, uint64_t len,
     ppn = frame_alloc();
     pte_flags = (PTEFlags)(map_perm);
     page_table_map(pt, vpn, ppn, pte_flags);
+    vector_push(&pt->frames, &ppn);
   }
 
   // check mapped

@@ -10,6 +10,7 @@
 
 int64_t sys_exit(int exit_code) {
   info("Application exited with code %d\n", exit_code);
+  debug("Remaining physical pages %lld\n", frame_remaining_pages());
   task_exit_current_and_run_next(exit_code);
   panic("Unreachable in sys_exit!\n");
   return 0;
@@ -113,6 +114,7 @@ int64_t sys_waitpid(int64_t pid, int *exit_code_ptr) {
   }
 
   if (x[found_idx]->task_status == TASK_STATUS_ZOMBIE) {
+    task_control_block_free(x[found_idx]);
     vector_remove(&task->children, found_idx);
     copy_byte_buffer(memory_set_token(&task->memory_set), (uint8_t *)&exit_code,
                      (uint8_t *)exit_code_ptr, sizeof(int), TO_USER);

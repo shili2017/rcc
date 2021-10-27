@@ -3,6 +3,11 @@
 extern void __switch(TaskContext *current_task_cx_ptr,
                      const TaskContext *next_task_cx_ptr);
 
+typedef struct {
+  TaskControlBlock *current;
+  TaskContext idle_task_cx;
+} Processor;
+
 static Processor PROCESSOR;
 
 static inline void processor_init(Processor *processor) {

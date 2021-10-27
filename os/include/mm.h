@@ -51,12 +51,6 @@ typedef uint64_t VirtAddr;
 typedef uint64_t PhysPageNum;
 typedef uint64_t VirtPageNum;
 
-typedef struct {
-  PhysPageNum current;
-  PhysPageNum end;
-  struct vector recycled;
-} StackFrameAllocator;
-
 typedef uint8_t PTEFlags;
 typedef uint64_t PageTableEntry;
 
@@ -116,6 +110,7 @@ void frame_allocator_init();
 void frame_allocator_free();
 PhysPageNum frame_alloc();
 void frame_dealloc(PhysPageNum ppn);
+uint64_t frame_remaining_pages();
 
 // page_table.c
 void page_table_new(PageTable *pt);
