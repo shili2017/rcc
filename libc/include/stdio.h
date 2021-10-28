@@ -44,6 +44,11 @@
 extern "C" {
 #endif
 
+// getchar for user
+#ifndef __KERNEL__
+char getchar();
+#endif
+
 /**
  * Output a character to a custom device like UART, used by the printf()
  * function This function is declared here only. You have to write your custom

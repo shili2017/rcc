@@ -39,7 +39,7 @@ void trap_enable_timer_interrupt() {
 void trap_handler() {
   set_kernel_trap_entry();
 
-  TrapContext *cx = task_current_trap_cx();
+  TrapContext *cx = processor_current_trap_cx();
   uint64_t scause = r_scause();
   uint64_t stval = r_stval();
 
@@ -69,11 +69,13 @@ void trap_handler() {
       info("Exception %lld in application, bad addr = %llx, bad instruction = "
            "%llx, core dumped.\n",
            scause, stval, cx->sepc);
-      task_exit_current_and_run_next();
+      // page fault exit code
+      task_exit_current_and_run_next(-2);
       break;
     case IllegalInstruction:
       info("IllegalInstruction in application, core dumped.\n");
-      task_exit_current_and_run_next();
+      // illegal instruction exit code
+      task_exit_current_and_run_next(-3);
       break;
     default:
       panic("Unsupported exception 0x%llx, stval = 0x%llx\n", scause, stval);
@@ -90,10 +92,9 @@ extern void __restore();
 void trap_return() {
   set_user_trap_entry();
   uint64_t trap_cx_ptr = TRAP_CONTEXT;
-  uint64_t user_satp = task_current_user_token();
+  uint64_t user_satp = processor_current_user_token();
   uint64_t restore_va = (uint64_t)__restore - (uint64_t)__alltraps + TRAMPOLINE;
   asm volatile("fence.i");
-  asm volatile("");
   asm volatile("mv x10, %1\n"
                "mv x11, %2\n"
                "jr %0\n"

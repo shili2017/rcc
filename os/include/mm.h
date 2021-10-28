@@ -51,12 +51,6 @@ typedef uint64_t VirtAddr;
 typedef uint64_t PhysPageNum;
 typedef uint64_t VirtPageNum;
 
-typedef struct {
-  PhysPageNum current;
-  PhysPageNum end;
-  struct vector recycled;
-} StackFrameAllocator;
-
 typedef uint8_t PTEFlags;
 typedef uint64_t PageTableEntry;
 
@@ -116,6 +110,8 @@ void frame_allocator_init();
 void frame_allocator_free();
 PhysPageNum frame_alloc();
 void frame_dealloc(PhysPageNum ppn);
+uint64_t frame_remaining_pages();
+void frame_allocator_print();
 
 // page_table.c
 void page_table_new(PageTable *pt);
@@ -133,14 +129,17 @@ void copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
 
 // memory_set.c
 uint64_t memory_set_token(MemorySet *memory_set);
+void memory_set_free(MemorySet *memory_set);
 void memory_set_from_elf(MemorySet *memory_set, uint8_t *elf_data,
                          size_t elf_size, uint64_t *user_sp,
                          uint64_t *entry_point);
+void memory_set_from_existed_user(MemorySet *memory_set, MemorySet *user_space);
 void memory_set_kernel_init();
-void memory_set_free(MemorySet *memory_set);
 PageTableEntry *memory_set_translate(MemorySet *memory_set, VirtPageNum vpn);
+void memory_set_recycle_data_pages(MemorySet *memory_set);
 void kernel_space_insert_framed_area(VirtAddr start_va, VirtAddr end_va,
                                      MapPermission permission);
+void kernel_space_remove_area_with_start_vpn(VirtPageNum start_vpn);
 uint64_t kernel_space_token();
 int64_t memory_set_mmap(MemorySet *memory_set, uint64_t start, uint64_t len,
                         uint64_t prot);

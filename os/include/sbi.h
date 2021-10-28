@@ -15,7 +15,7 @@
 
 void set_timer(uint64_t timer);
 void console_putchar(char c);
-void console_getchar();
+uint64_t console_getchar();
 void shutdown();
 
 #endif // _SBI_H_
