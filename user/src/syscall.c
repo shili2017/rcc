@@ -16,6 +16,12 @@ static inline int64_t syscall(uint64_t id, uint64_t a0, uint64_t a1,
   return ret;
 }
 
+int64_t close(uint64_t fd) { return syscall(SYSCALL_CLOSE, fd, 0, 0); }
+
+int64_t pipe(uint64_t *pipe) {
+  return syscall(SYSCALL_PIPE, (uint64_t)pipe, 0, 0);
+}
+
 int64_t read(uint64_t fd, char *buf) {
   return syscall(SYSCALL_READ, fd, (uint64_t)buf, 1);
 }
