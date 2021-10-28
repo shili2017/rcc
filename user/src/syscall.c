@@ -42,6 +42,14 @@ int64_t get_time() {
   return -1;
 }
 
+int64_t sleep(uint64_t period_ms) {
+  int64_t start = get_time();
+  while (get_time() < start + period_ms) {
+    yield();
+  }
+  return 0;
+}
+
 int64_t getpid() { return syscall(SYSCALL_GETPID, 0, 0, 0); }
 
 int64_t munmap(uint64_t start, uint64_t len) {
@@ -80,10 +88,6 @@ int64_t waitpid(int64_t pid, int *exit_code) {
   }
 }
 
-int64_t sleep(uint64_t period_ms) {
-  int64_t start = get_time();
-  while (get_time() < start + period_ms) {
-    yield();
-  }
-  return 0;
+int64_t spawn(char *path) {
+  return syscall(SYSCALL_SPAWN, (uint64_t)path, 0, 0);
 }
