@@ -125,3 +125,23 @@ int64_t sys_waitpid(int64_t pid, int *exit_code_ptr) {
     return -2;
   }
 }
+
+int64_t sys_spawn(char *path) {
+  TaskControlBlock *current_task = processor_current_task();
+
+  char app_name[MAX_APP_NAME_LENGTH];
+  copy_byte_buffer(processor_current_user_token(), (uint8_t *)app_name,
+                   (uint8_t *)path, MAX_APP_NAME_LENGTH, FROM_USER);
+
+  uint8_t *data = loader_get_app_data_by_name(app_name);
+  size_t size = loader_get_app_size_by_name(app_name);
+  TaskControlBlock *new_task;
+
+  if (data) {
+    new_task = task_control_block_spawn(current_task, data, size);
+    task_manager_add_task(new_task);
+    return (int64_t)new_task->pid;
+  } else {
+    return -1;
+  }
+}

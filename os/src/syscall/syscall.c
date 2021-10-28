@@ -28,6 +28,8 @@ int64_t syscall(uint64_t syscall_id, uint64_t a0, uint64_t a1, uint64_t a2) {
     return sys_mmap(a0, a1, a2);
   case SYSCALL_WAITPID:
     return sys_waitpid((int64_t)a0, (int *)a1);
+  case SYSCALL_SPAWN:
+    return sys_spawn((char *)a0);
   default:
     panic("Unsupported syscall_id: %lld\n", syscall_id);
     break;

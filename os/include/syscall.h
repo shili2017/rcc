@@ -17,6 +17,7 @@
 #define SYSCALL_EXEC 221
 #define SYSCALL_MMAP 222
 #define SYSCALL_WAITPID 260
+#define SYSCALL_SPAWN 400
 
 int64_t syscall(uint64_t syscall_id, uint64_t a0, uint64_t a1, uint64_t a2);
 
@@ -32,5 +33,6 @@ int64_t sys_fork();
 int64_t sys_exec(char *path);
 int64_t sys_mmap(uint64_t start, uint64_t len, uint64_t prot);
 int64_t sys_waitpid(int64_t pid, int *exit_code_ptr);
+int64_t sys_spawn(char *path);
 
 #endif // _SYSCALL_H_
