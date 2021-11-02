@@ -4,10 +4,10 @@
 #include "stdio.h"
 #include "syscall.h"
 
-#define assert(cond, ...)                                                      \
+#define assert(cond)                                                           \
   do {                                                                         \
     if (!(cond)) {                                                             \
-      printf("[ASSERT] "##__VA_ARGS__);                                        \
+      printf("[ASSERT]\n");                                                    \
       exit(-1);                                                                \
     }                                                                          \
   } while (0)
