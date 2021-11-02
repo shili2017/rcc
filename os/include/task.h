@@ -69,7 +69,7 @@ MemorySet *task_current_memory_set();
 TrapContext *task_control_block_get_trap_cx(TaskControlBlock *s);
 uint64_t task_control_block_get_user_token(TaskControlBlock *s);
 int64_t task_control_block_alloc_fd(TaskControlBlock *s);
-void task_control_block_dealloc_fd(TaskControlBlock *s, uint64_t fd);
+void task_control_block_dealloc_fd(TaskControlBlock *s);
 void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
                             size_t elf_size);
 void task_control_block_free(TaskControlBlock *s);

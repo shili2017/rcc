@@ -24,14 +24,21 @@ int64_t task_control_block_alloc_fd(TaskControlBlock *s) {
   return -1;
 }
 
-void task_control_block_dealloc_fd(TaskControlBlock *s, uint64_t fd) {
-  File *file = s->fd_table[fd];
-  if (file != NULL) {
-    if (file->is_pipe) {
-      pipe_close(file->pipe, file->writable);
+void task_control_block_dealloc_fd(TaskControlBlock *s) {
+  File *file;
+  // fd = 0,1,2 is reserved for stdio/stdout/stderr
+  for (uint64_t i = 3; i < MAX_FILE_NUM; i++) {
+    file = s->fd_table[i];
+    if (file) {
+      if (--file->ref > 0) {
+        continue;
+      }
+      if (file->is_pipe) {
+        pipe_close(file->pipe, file->writable);
+      }
+      bd_free(file);
+      s->fd_table[i] = NULL;
     }
-    bd_free(file);
-    file = NULL;
   }
 }
 
@@ -71,9 +78,7 @@ void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
 
 void task_control_block_free(TaskControlBlock *s) {
   s->task_status = TASK_STATUS_EXITED;
-  for (uint64_t i = 0; i < MAX_FILE_NUM; i++) {
-    task_control_block_dealloc_fd(s, i);
-  }
+  task_control_block_dealloc_fd(s);
   pid_dealloc(s->pid);
   bd_free(s);
 }
@@ -174,6 +179,8 @@ TaskControlBlock *task_control_block_spawn(TaskControlBlock *parent,
   s->parent = parent;
   vector_new(&s->children, sizeof(TaskControlBlock *));
   s->exit_code = 0;
+
+  memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
 
   s->priority = parent->priority;
   s->stride = parent->stride;
