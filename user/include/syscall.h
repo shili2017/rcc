@@ -21,7 +21,7 @@
 
 int64_t close(uint64_t fd);
 int64_t pipe(uint64_t *pipe);
-int64_t read(uint64_t rd, char *buf);
+int64_t read(uint64_t rd, char *buf, uint64_t len);
 int64_t write(uint64_t fd, char *buf, uint64_t len);
 int64_t exit(int exit_code);
 int64_t yield();

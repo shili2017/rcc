@@ -22,8 +22,8 @@ int64_t pipe(uint64_t *pipe) {
   return syscall(SYSCALL_PIPE, (uint64_t)pipe, 0, 0);
 }
 
-int64_t read(uint64_t fd, char *buf) {
-  return syscall(SYSCALL_READ, fd, (uint64_t)buf, 1);
+int64_t read(uint64_t fd, char *buf, uint64_t len) {
+  return syscall(SYSCALL_READ, fd, (uint64_t)buf, len);
 }
 
 int64_t write(uint64_t fd, char *buf, uint64_t len) {
