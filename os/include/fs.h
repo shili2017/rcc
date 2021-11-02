@@ -5,6 +5,8 @@
 #include <stdint.h>
 
 #define PIPE_SIZE 256
+#define MAX_MAIL_NUM 16
+#define MAIL_SIZE 256
 
 typedef struct {
   char buffer[PIPE_SIZE];
@@ -21,6 +23,12 @@ typedef struct {
   bool readable;
   bool writable;
 } File;
+
+typedef struct {
+  char buffer[MAX_MAIL_NUM][MAIL_SIZE];
+  uint64_t read_mails;  // number of mails read
+  uint64_t write_mails; // number of mails written
+} Mailbox;
 
 // fs.c
 int64_t stdin_read(char *buf, uint64_t len);

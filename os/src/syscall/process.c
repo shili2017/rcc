@@ -230,3 +230,53 @@ int64_t sys_spawn(char *path) {
     return -1;
   }
 }
+
+int64_t sys_mailread(char *buf, uint64_t len) {
+  TaskControlBlock *task = processor_current_task();
+
+  if (task->mailbox.write_mails == task->mailbox.read_mails) {
+    return -1;
+  }
+  if (len == 0) {
+    return 0;
+  }
+  if (len > MAIL_SIZE) {
+    len = MAIL_SIZE;
+  }
+
+  int64_t ret = copy_byte_buffer(
+      processor_current_user_token(),
+      (uint8_t *)task->mailbox.buffer[task->mailbox.read_mails % MAX_MAIL_NUM],
+      (uint8_t *)buf, len, TO_USER);
+  if (ret < 0) {
+    return -1;
+  }
+  info("read mail from %lld, len = %lld\n", task->mailbox.read_mails, len);
+  task->mailbox.read_mails++;
+  return len;
+}
+
+int64_t sys_mailwrite(int64_t pid, char *buf, uint64_t len) {
+  TaskControlBlock *task = task_manager_fetch_task_by_pid((uint64_t)pid);
+
+  if (task->mailbox.write_mails - task->mailbox.read_mails == MAX_MAIL_NUM) {
+    return -1;
+  }
+  if (len == 0) {
+    return 0;
+  }
+  if (len > MAIL_SIZE) {
+    len = MAIL_SIZE;
+  }
+
+  int64_t ret = copy_byte_buffer(
+      processor_current_user_token(),
+      (uint8_t *)task->mailbox.buffer[task->mailbox.write_mails % MAX_MAIL_NUM],
+      (uint8_t *)buf, len, FROM_USER);
+  if (ret < 0) {
+    return -1;
+  }
+  info("write mail to %lld, len = %lld\n", task->mailbox.write_mails, len);
+  task->mailbox.write_mails++;
+  return len;
+}

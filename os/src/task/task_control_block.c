@@ -71,6 +71,7 @@ void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
                    (uint64_t)trap_handler, trap_cx);
 
   memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
+  memset(&s->mailbox, 0, sizeof(Mailbox));
 
   s->priority = DEFAULT_PRIORITY;
   s->stride = 0;
@@ -134,6 +135,9 @@ TaskControlBlock *task_control_block_fork(TaskControlBlock *parent) {
     }
   }
 
+  // create mailbox
+  memset(&s->mailbox, 0, sizeof(Mailbox));
+
   s->priority = parent->priority;
   s->stride = parent->stride;
 
@@ -180,7 +184,11 @@ TaskControlBlock *task_control_block_spawn(TaskControlBlock *parent,
   vector_new(&s->children, sizeof(TaskControlBlock *));
   s->exit_code = 0;
 
+  // create fd table
   memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
+
+  // create mailbox
+  memset(&s->mailbox, 0, sizeof(Mailbox));
 
   s->priority = parent->priority;
   s->stride = parent->stride;

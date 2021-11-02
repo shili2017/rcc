@@ -32,6 +32,9 @@ TaskControlBlock *task_manager_fetch_task() {
 }
 
 TaskControlBlock *task_manager_fetch_task_by_pid(uint64_t pid) {
+  if (pid == processor_current_task()->pid) {
+    return processor_current_task();
+  }
   for (uint64_t i = TASK_MANAGER.head; i < TASK_MANAGER.tail; i++) {
     if (TASK_MANAGER.ready_queue[i % MAX_TASK_NUM]->pid == pid) {
       return TASK_MANAGER.ready_queue[i % MAX_TASK_NUM];

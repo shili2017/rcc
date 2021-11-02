@@ -84,16 +84,21 @@ void page_table_unmap(PageTable *pt, VirtPageNum vpn) {
 
 PageTableEntry *page_table_translate(PageTable *pt, VirtPageNum vpn) {
   PageTableEntry *pte = page_table_find_pte(pt, vpn);
-  assert(pte, "Cannot find VPN 0x%llx in page table.\n", vpn);
+  if (pte == NULL) {
+    warn("Cannot find VPN 0x%llx in page table.\n", vpn);
+  }
   return pte;
 }
 
 uint64_t page_table_token(PageTable *pt) { return ((8L << 60) | pt->root_ppn); }
 
-void copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
-                      uint64_t len, uint64_t direction) {
+int64_t copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
+                         uint64_t len, uint64_t direction) {
   if (direction != FROM_USER && direction != TO_USER) {
     panic("Unknown direction in copy_byte_buffer.\n");
+  }
+  if (len == 0) {
+    return 0;
   }
 
   PageTable page_table;
@@ -105,12 +110,17 @@ void copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
   VirtAddr start_va, end_va;
   VirtPageNum vpn;
   PhysPageNum ppn;
+  PageTableEntry *pte_ptr;
   uint8_t *bytes_array;
 
   while (start < end) {
     start_va = (VirtAddr)start;
     vpn = page_floor(start_va);
-    ppn = pte_ppn(*page_table_translate(&page_table, vpn));
+    pte_ptr = page_table_translate(&page_table, vpn);
+    if (pte_ptr == NULL) {
+      return -1;
+    }
+    ppn = pte_ppn(*pte_ptr);
     vpn++;
     end_va = (VirtAddr)pn2addr(vpn);
     if ((VirtAddr)end < end_va) {
@@ -136,4 +146,5 @@ void copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
     }
     start = (uint64_t)end_va;
   }
+  return len;
 }
