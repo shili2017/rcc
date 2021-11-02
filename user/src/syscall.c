@@ -97,3 +97,11 @@ int64_t waitpid(int64_t pid, int *exit_code) {
 int64_t spawn(char *path) {
   return syscall(SYSCALL_SPAWN, (uint64_t)path, 0, 0);
 }
+
+int64_t mailread(char *buf, uint64_t len) {
+  return syscall(SYSCALL_MAILREAD, (uint64_t)buf, len, 0);
+}
+
+int64_t mailwrite(int64_t pid, char *buf, uint64_t len) {
+  return syscall(SYSCALL_MAILWRITE, (uint64_t)pid, (uint64_t)buf, len);
+}
