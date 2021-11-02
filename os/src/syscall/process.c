@@ -127,6 +127,10 @@ int64_t sys_munmap(uint64_t start, uint64_t len) {
 }
 
 int64_t sys_fork() {
+  if (task_manager_almost_full()) {
+    return -1;
+  }
+
   TaskControlBlock *current_task = processor_current_task();
   TaskControlBlock *new_task = task_control_block_fork(current_task);
   PidHandle new_pid = new_task->pid;
@@ -204,6 +208,10 @@ int64_t sys_waitpid(int64_t pid, int *exit_code_ptr) {
 }
 
 int64_t sys_spawn(char *path) {
+  if (task_manager_almost_full()) {
+    return -1;
+  }
+
   TaskControlBlock *current_task = processor_current_task();
 
   char app_name[MAX_APP_NAME_LENGTH];
