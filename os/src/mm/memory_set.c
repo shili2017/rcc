@@ -22,6 +22,7 @@ static void map_area_map_one(MapArea *map_area, PageTable *pt,
   PTEFlags pte_flags = (PTEFlags)(map_area->map_perm);
   page_table_map(pt, vpn, ppn, pte_flags);
   vector_push(&pt->frames, &ppn);
+  trace("map vpn 0x%llx - ppn 0x%llx\n", vpn, ppn);
 }
 
 static void map_area_unmap_one(MapArea *map_area, PageTable *pt,
@@ -30,7 +31,9 @@ static void map_area_unmap_one(MapArea *map_area, PageTable *pt,
   page_table_unmap(pt, vpn);
   if (dealloc) {
     frame_dealloc(ppn);
+    trace("frame dealloc 0x%llx\n", ppn);
   }
+  trace("unmap vpn 0x%llx - ppn 0x%llx\n", vpn, ppn);
 }
 
 static void map_area_map(MapArea *map_area, PageTable *pt) {
