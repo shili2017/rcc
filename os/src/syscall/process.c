@@ -1,12 +1,83 @@
 #include <stdint.h>
 
+#include "fs.h"
 #include "loader.h"
 #include "log.h"
 #include "mm.h"
+#include "sbi.h"
+#include "stdio.h"
 #include "string.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
+
+int64_t sys_close(uint64_t fd) {
+  TaskControlBlock *task = processor_current_task();
+  File *file = task->fd_table[fd];
+
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
+    return -1;
+  }
+
+  if (file->is_pipe) {
+    pipe_close(file->pipe, file->writable);
+  }
+
+  bd_free(file);
+  file = NULL;
+  return 0;
+}
+
+int64_t sys_pipe(uint64_t *pipe) {
+  TaskControlBlock *task = processor_current_task();
+  uint64_t token = processor_current_user_token();
+
+  uint64_t read_fd = task_control_block_alloc_fd(task);
+  uint64_t write_fd = task_control_block_alloc_fd(task);
+
+  File *pipe_read = task->fd_table[read_fd];
+  File *pipe_write = task->fd_table[write_fd];
+  pipe_make(pipe_read, pipe_write);
+
+  copy_byte_buffer(token, (uint8_t *)&read_fd, (uint8_t *)(&pipe[0]),
+                   sizeof(uint64_t), TO_USER);
+  copy_byte_buffer(token, (uint8_t *)&write_fd, (uint8_t *)(&pipe[1]),
+                   sizeof(uint64_t), TO_USER);
+  return 0;
+}
+
+int64_t sys_read(uint64_t fd, char *buf, uint64_t len) {
+  TaskControlBlock *task = processor_current_task();
+  File *file = task->fd_table[fd];
+
+  if (fd == FD_STDIN) {
+    return stdin_read(buf, len);
+  }
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
+    return -1;
+  }
+  if (file->is_pipe) {
+    return pipe_read(file->pipe, buf, len);
+  }
+
+  return -1;
+}
+
+int64_t sys_write(uint64_t fd, char *buf, uint64_t len) {
+  TaskControlBlock *task = processor_current_task();
+  File *file = task->fd_table[fd];
+
+  if (fd == FD_STDOUT || fd == FD_STDERR) {
+    return stdout_write(buf, len);
+  }
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
+    return -1;
+  }
+  if (file->is_pipe) {
+    return pipe_write(file->pipe, buf, len);
+  }
+  return -1;
+}
 
 int64_t sys_exit(int exit_code) {
   info("Application exited with code %d\n", exit_code);
