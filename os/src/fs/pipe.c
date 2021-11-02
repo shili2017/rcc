@@ -88,7 +88,7 @@ int64_t pipe_write(Pipe *pipe, char *buf, uint64_t len) {
                  PIPE_SIZE - (pipe->write_bytes % PIPE_SIZE));
       copy_byte_buffer(processor_current_user_token(),
                        (uint8_t *)&pipe->buffer[pipe->write_bytes % PIPE_SIZE],
-                       (uint8_t *)buf + i, size, TO_USER);
+                       (uint8_t *)buf + i, size, FROM_USER);
       pipe->write_bytes += size;
       i += size;
     }

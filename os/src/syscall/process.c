@@ -15,10 +15,12 @@ int64_t sys_close(uint64_t fd) {
   TaskControlBlock *task = processor_current_task();
   File *file = task->fd_table[fd];
 
-  if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file || file->ref < 1) {
     return -1;
   }
-
+  if (--file->ref > 0) {
+    return 0;
+  }
   if (file->is_pipe) {
     pipe_close(file->pipe, file->writable);
   }
@@ -32,8 +34,12 @@ int64_t sys_pipe(uint64_t *pipe) {
   TaskControlBlock *task = processor_current_task();
   uint64_t token = processor_current_user_token();
 
-  uint64_t read_fd = task_control_block_alloc_fd(task);
-  uint64_t write_fd = task_control_block_alloc_fd(task);
+  int64_t read_fd = task_control_block_alloc_fd(task);
+  int64_t write_fd = task_control_block_alloc_fd(task);
+
+  if (read_fd < 0 || write_fd < 0) {
+    return -1;
+  }
 
   File *pipe_read = task->fd_table[read_fd];
   File *pipe_write = task->fd_table[write_fd];

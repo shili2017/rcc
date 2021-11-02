@@ -65,13 +65,6 @@ void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
 
   memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
 
-  for (uint64_t i = 0; i < 2; i++) {
-    task_control_block_alloc_fd(s);
-  }
-  s->fd_table[0]->readable = true; // stdin
-  s->fd_table[1]->writable = true; // stdout
-  s->fd_table[2]->writable = true; // stderr (stdout in rcc)
-
   s->priority = DEFAULT_PRIORITY;
   s->stride = 0;
 }
@@ -131,8 +124,8 @@ TaskControlBlock *task_control_block_fork(TaskControlBlock *parent) {
   memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
   for (uint64_t i = 0; i < MAX_FILE_NUM; i++) {
     if (parent->fd_table[i] != NULL) {
-      task_control_block_alloc_fd(s);
-      memcpy(s->fd_table[i], parent->fd_table[i], sizeof(File));
+      parent->fd_table[i]->ref++;
+      s->fd_table[i] = parent->fd_table[i];
     }
   }
 
