@@ -3,52 +3,27 @@
 
 typedef struct {
   PidHandle current;
-  struct vector recycled;
 } PidAllocator;
 
 static PidAllocator PID_ALLOCATOR;
 
-void pid_allocator_init() {
-  PID_ALLOCATOR.current = 1;
-  vector_new(&PID_ALLOCATOR.recycled, sizeof(PidHandle));
-}
-
-void pid_allocator_free() { vector_free(&PID_ALLOCATOR.recycled); }
+void pid_allocator_init() { PID_ALLOCATOR.current = 1; }
 
 PidHandle pid_alloc() {
   PidHandle pid;
-  if (!vector_empty(&PID_ALLOCATOR.recycled)) {
-    pid = *(PidHandle *)vector_back(&PID_ALLOCATOR.recycled);
-    vector_pop(&PID_ALLOCATOR.recycled);
-  } else {
-    pid = PID_ALLOCATOR.current;
-    PID_ALLOCATOR.current++;
-  }
+  pid = PID_ALLOCATOR.current;
+  PID_ALLOCATOR.current++;
   return pid;
 }
 
 void pid_dealloc(PidHandle pid) {
-  bool in_recycled = false;
-  PidHandle *x = *(PidHandle **)(&PID_ALLOCATOR.recycled.buffer);
-  for (uint64_t i = 0; i < PID_ALLOCATOR.recycled.size; i++) {
-    if (x[i] == pid) {
-      in_recycled = true;
-      break;
-    }
-  }
-  if (pid >= PID_ALLOCATOR.current || in_recycled) {
+  if (pid >= PID_ALLOCATOR.current) {
     panic("Pid=%llx has not been allocated!\n", pid);
   }
-  vector_push(&PID_ALLOCATOR.recycled, &pid);
 }
 
 void pid_allocator_print() {
-  printf("Pid allocator current = %lld recycled = [ ", PID_ALLOCATOR.current);
-  PidHandle *x = *(PidHandle **)(&PID_ALLOCATOR.recycled.buffer);
-  for (uint64_t i = 0; i < PID_ALLOCATOR.recycled.size; i++) {
-    printf("%lld ", x[i]);
-  }
-  printf("]\n");
+  printf("Pid allocator current = %lld\n", PID_ALLOCATOR.current);
 }
 
 extern MemorySet KERNEL_SPACE;

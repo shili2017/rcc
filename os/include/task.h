@@ -97,7 +97,6 @@ void task_context_goto_trap_return(TaskContext *cx, uint64_t kstack_ptr);
 
 // pid.c
 void pid_allocator_init();
-void pid_allocator_free();
 PidHandle pid_alloc();
 void pid_dealloc(PidHandle pid);
 void pid_allocator_print();
