@@ -89,7 +89,8 @@ int64_t sys_write(uint64_t fd, char *buf, uint64_t len) {
 }
 
 int64_t sys_exit(int exit_code) {
-  info("Application exited with code %d\n", exit_code);
+  info("Application (pid = %lld) exited with code %d\n",
+       processor_current_task()->pid, exit_code);
   debug("Remaining physical pages %lld\n", frame_remaining_pages());
   task_exit_current_and_run_next(exit_code);
   panic("Unreachable in sys_exit!\n");
