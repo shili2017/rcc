@@ -1,12 +1,92 @@
 #include <stdint.h>
 
+#include "fs.h"
 #include "loader.h"
 #include "log.h"
 #include "mm.h"
+#include "sbi.h"
+#include "stdio.h"
 #include "string.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
+
+int64_t sys_close(uint64_t fd) {
+  TaskControlBlock *task = processor_current_task();
+  File *file = task->fd_table[fd];
+
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file || file->file_ref < 1) {
+    return -1;
+  }
+  if (--file->file_ref > 0) {
+    return 0;
+  }
+  if (file->is_pipe) {
+    pipe_close(file->pipe, file->writable);
+  }
+
+  file->file_ref = 0;
+  file->pipe = NULL;
+  file->is_pipe = false;
+  file->readable = false;
+  file->writable = false;
+  return 0;
+}
+
+int64_t sys_pipe(uint64_t *pipe) {
+  TaskControlBlock *task = processor_current_task();
+  uint64_t token = processor_current_user_token();
+
+  int64_t read_fd = task_control_block_alloc_fd(task);
+  int64_t write_fd = task_control_block_alloc_fd(task);
+
+  if (read_fd < 0 || write_fd < 0) {
+    return -1;
+  }
+
+  File *pipe_read = task->fd_table[read_fd];
+  File *pipe_write = task->fd_table[write_fd];
+  pipe_make(pipe_read, pipe_write);
+
+  copy_byte_buffer(token, (uint8_t *)&read_fd, (uint8_t *)(&pipe[0]),
+                   sizeof(uint64_t), TO_USER);
+  copy_byte_buffer(token, (uint8_t *)&write_fd, (uint8_t *)(&pipe[1]),
+                   sizeof(uint64_t), TO_USER);
+  return 0;
+}
+
+int64_t sys_read(uint64_t fd, char *buf, uint64_t len) {
+  TaskControlBlock *task = processor_current_task();
+  File *file = task->fd_table[fd];
+
+  if (fd == FD_STDIN) {
+    return stdin_read(buf, len);
+  }
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
+    return -1;
+  }
+  if (file->is_pipe) {
+    return pipe_read(file->pipe, buf, len);
+  }
+
+  return -1;
+}
+
+int64_t sys_write(uint64_t fd, char *buf, uint64_t len) {
+  TaskControlBlock *task = processor_current_task();
+  File *file = task->fd_table[fd];
+
+  if (fd == FD_STDOUT || fd == FD_STDERR) {
+    return stdout_write(buf, len);
+  }
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
+    return -1;
+  }
+  if (file->is_pipe) {
+    return pipe_write(file->pipe, buf, len);
+  }
+  return -1;
+}
 
 int64_t sys_exit(int exit_code) {
   info("Application exited with code %d\n", exit_code);
@@ -50,6 +130,10 @@ int64_t sys_munmap(uint64_t start, uint64_t len) {
 }
 
 int64_t sys_fork() {
+  if (task_manager_almost_full()) {
+    return -1;
+  }
+
   TaskControlBlock *current_task = processor_current_task();
   TaskControlBlock *new_task = task_control_block_fork(current_task);
   PidHandle new_pid = new_task->pid;
@@ -127,6 +211,10 @@ int64_t sys_waitpid(int64_t pid, int *exit_code_ptr) {
 }
 
 int64_t sys_spawn(char *path) {
+  if (task_manager_almost_full()) {
+    return -1;
+  }
+
   TaskControlBlock *current_task = processor_current_task();
 
   char app_name[MAX_APP_NAME_LENGTH];
@@ -144,4 +232,54 @@ int64_t sys_spawn(char *path) {
   } else {
     return -1;
   }
+}
+
+int64_t sys_mailread(char *buf, uint64_t len) {
+  TaskControlBlock *task = processor_current_task();
+
+  if (task->mailbox.write_mails == task->mailbox.read_mails) {
+    return -1;
+  }
+  if (len == 0) {
+    return 0;
+  }
+  if (len > MAIL_SIZE) {
+    len = MAIL_SIZE;
+  }
+
+  int64_t ret = copy_byte_buffer(
+      processor_current_user_token(),
+      (uint8_t *)task->mailbox.buffer[task->mailbox.read_mails % MAX_MAIL_NUM],
+      (uint8_t *)buf, len, TO_USER);
+  if (ret < 0) {
+    return -1;
+  }
+  info("read mail from %lld, len = %lld\n", task->mailbox.read_mails, len);
+  task->mailbox.read_mails++;
+  return len;
+}
+
+int64_t sys_mailwrite(int64_t pid, char *buf, uint64_t len) {
+  TaskControlBlock *task = task_manager_fetch_task_by_pid((uint64_t)pid);
+
+  if (task->mailbox.write_mails - task->mailbox.read_mails == MAX_MAIL_NUM) {
+    return -1;
+  }
+  if (len == 0) {
+    return 0;
+  }
+  if (len > MAIL_SIZE) {
+    len = MAIL_SIZE;
+  }
+
+  int64_t ret = copy_byte_buffer(
+      processor_current_user_token(),
+      (uint8_t *)task->mailbox.buffer[task->mailbox.write_mails % MAX_MAIL_NUM],
+      (uint8_t *)buf, len, FROM_USER);
+  if (ret < 0) {
+    return -1;
+  }
+  info("write mail to %lld, len = %lld\n", task->mailbox.write_mails, len);
+  task->mailbox.write_mails++;
+  return len;
 }

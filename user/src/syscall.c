@@ -16,8 +16,14 @@ static inline int64_t syscall(uint64_t id, uint64_t a0, uint64_t a1,
   return ret;
 }
 
-int64_t read(uint64_t fd, char *buf) {
-  return syscall(SYSCALL_READ, fd, (uint64_t)buf, 1);
+int64_t close(uint64_t fd) { return syscall(SYSCALL_CLOSE, fd, 0, 0); }
+
+int64_t pipe(uint64_t *pipe) {
+  return syscall(SYSCALL_PIPE, (uint64_t)pipe, 0, 0);
+}
+
+int64_t read(uint64_t fd, char *buf, uint64_t len) {
+  return syscall(SYSCALL_READ, fd, (uint64_t)buf, len);
 }
 
 int64_t write(uint64_t fd, char *buf, uint64_t len) {
@@ -90,4 +96,12 @@ int64_t waitpid(int64_t pid, int *exit_code) {
 
 int64_t spawn(char *path) {
   return syscall(SYSCALL_SPAWN, (uint64_t)path, 0, 0);
+}
+
+int64_t mailread(char *buf, uint64_t len) {
+  return syscall(SYSCALL_MAILREAD, (uint64_t)buf, len, 0);
+}
+
+int64_t mailwrite(int64_t pid, char *buf, uint64_t len) {
+  return syscall(SYSCALL_MAILWRITE, (uint64_t)pid, (uint64_t)buf, len);
 }

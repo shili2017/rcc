@@ -4,6 +4,10 @@
 
 int64_t syscall(uint64_t syscall_id, uint64_t a0, uint64_t a1, uint64_t a2) {
   switch (syscall_id) {
+  case SYSCALL_CLOSE:
+    return sys_close(a0);
+  case SYSCALL_PIPE:
+    return sys_pipe((uint64_t *)a0);
   case SYSCALL_READ:
     return sys_read(a0, (char *)a1, a2);
   case SYSCALL_WRITE:
@@ -30,6 +34,10 @@ int64_t syscall(uint64_t syscall_id, uint64_t a0, uint64_t a1, uint64_t a2) {
     return sys_waitpid((int64_t)a0, (int *)a1);
   case SYSCALL_SPAWN:
     return sys_spawn((char *)a0);
+  case SYSCALL_MAILREAD:
+    return sys_mailread((char *)a0, a1);
+  case SYSCALL_MAILWRITE:
+    return sys_mailwrite((int64_t)a0, (char *)a1, a2);
   default:
     panic("Unsupported syscall_id: %lld\n", syscall_id);
     break;

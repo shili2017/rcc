@@ -124,8 +124,8 @@ void page_table_map(PageTable *pt, VirtPageNum vpn, PhysPageNum ppn,
 void page_table_unmap(PageTable *pt, VirtPageNum vpn);
 PageTableEntry *page_table_translate(PageTable *pt, VirtPageNum vpn);
 uint64_t page_table_token(PageTable *pt);
-void copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
-                      uint64_t len, uint64_t direction);
+int64_t copy_byte_buffer(uint64_t token, uint8_t *kernel, uint8_t *user,
+                         uint64_t len, uint64_t direction);
 
 // memory_set.c
 uint64_t memory_set_token(MemorySet *memory_set);

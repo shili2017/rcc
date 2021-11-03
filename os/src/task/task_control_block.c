@@ -1,4 +1,7 @@
+#include <stddef.h>
+
 #include "config.h"
+#include "string.h"
 #include "task.h"
 
 TrapContext *task_control_block_get_trap_cx(TaskControlBlock *s) {
@@ -7,6 +10,41 @@ TrapContext *task_control_block_get_trap_cx(TaskControlBlock *s) {
 
 uint64_t task_control_block_get_user_token(TaskControlBlock *s) {
   return memory_set_token(&s->memory_set);
+}
+
+int64_t task_control_block_alloc_fd(TaskControlBlock *s) {
+  // fd = 0,1,2 is reserved for stdio/stdout/stderr
+  for (uint64_t i = 3; i < MAX_FILE_NUM; i++) {
+    if (s->fd_table[i] == NULL) {
+      s->fd_table[i] = bd_malloc(sizeof(File));
+      memset(s->fd_table[i], 0, sizeof(File));
+      s->fd_table[i]->proc_ref = 1;
+      s->fd_table[i]->file_ref = 1;
+      return i;
+    } else if (s->fd_table[i]->file_ref == 0) {
+      memset(s->fd_table[i], 0, sizeof(File));
+      s->fd_table[i]->file_ref = 1;
+      return i;
+    }
+  }
+  return -1;
+}
+
+void task_control_block_dealloc_fd(TaskControlBlock *s) {
+  File *file;
+  // fd = 0,1,2 is reserved for stdio/stdout/stderr
+  for (uint64_t i = 3; i < MAX_FILE_NUM; i++) {
+    file = s->fd_table[i];
+    if (file) {
+      if (--file->proc_ref > 0) {
+        continue;
+      }
+      if (file->is_pipe) {
+        pipe_close(file->pipe, file->writable);
+      }
+      bd_free(file);
+    }
+  }
 }
 
 void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
@@ -37,12 +75,16 @@ void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
   app_init_context(entry_point, user_sp, kernel_space_token(), kernel_stack_top,
                    (uint64_t)trap_handler, trap_cx);
 
+  memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
+  memset(&s->mailbox, 0, sizeof(Mailbox));
+
   s->priority = DEFAULT_PRIORITY;
   s->stride = 0;
 }
 
 void task_control_block_free(TaskControlBlock *s) {
   s->task_status = TASK_STATUS_EXITED;
+  task_control_block_dealloc_fd(s);
   pid_dealloc(s->pid);
   bd_free(s);
 }
@@ -89,6 +131,19 @@ TaskControlBlock *task_control_block_fork(TaskControlBlock *parent) {
   vector_new(&s->children, sizeof(TaskControlBlock *));
   s->exit_code = 0;
 
+  // copy fd table
+  memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
+  for (uint64_t i = 0; i < MAX_FILE_NUM; i++) {
+    if (parent->fd_table[i] != NULL) {
+      parent->fd_table[i]->proc_ref++;
+      parent->fd_table[i]->file_ref++;
+      s->fd_table[i] = parent->fd_table[i];
+    }
+  }
+
+  // create mailbox
+  memset(&s->mailbox, 0, sizeof(Mailbox));
+
   s->priority = parent->priority;
   s->stride = parent->stride;
 
@@ -134,6 +189,12 @@ TaskControlBlock *task_control_block_spawn(TaskControlBlock *parent,
   s->parent = parent;
   vector_new(&s->children, sizeof(TaskControlBlock *));
   s->exit_code = 0;
+
+  // create fd table
+  memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
+
+  // create mailbox
+  memset(&s->mailbox, 0, sizeof(Mailbox));
 
   s->priority = parent->priority;
   s->stride = parent->stride;

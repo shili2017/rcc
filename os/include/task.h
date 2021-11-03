@@ -1,10 +1,12 @@
 #ifndef _TASK_H_
 #define _TASK_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "config.h"
 #include "external.h"
+#include "fs.h"
 #include "mm.h"
 #include "trap.h"
 
@@ -12,6 +14,9 @@
 #define TASK_STATUS_RUNNING 1
 #define TASK_STATUS_ZOMBIE 2
 #define TASK_STATUS_EXITED 3
+
+#define MAX_TASK_NUM 64
+#define MAX_FILE_NUM 16
 
 #define BIG_STRIDE 100000
 #define MAX_PRIORITY 32
@@ -44,6 +49,8 @@ struct TaskControlBlock {
   TaskControlBlock *parent;
   struct vector children;
   int exit_code;
+  File *fd_table[MAX_FILE_NUM];
+  Mailbox mailbox;
 
   // stride scheduling
   uint64_t priority;
@@ -51,7 +58,9 @@ struct TaskControlBlock {
 };
 
 typedef struct {
-  struct queue ready_queue;
+  TaskControlBlock *ready_queue[MAX_TASK_NUM];
+  uint64_t head;
+  uint64_t tail;
 } TaskManager;
 
 // task.c
@@ -64,6 +73,8 @@ MemorySet *task_current_memory_set();
 // task_control_block.c
 TrapContext *task_control_block_get_trap_cx(TaskControlBlock *s);
 uint64_t task_control_block_get_user_token(TaskControlBlock *s);
+int64_t task_control_block_alloc_fd(TaskControlBlock *s);
+void task_control_block_dealloc_fd(TaskControlBlock *s);
 void task_control_block_new(TaskControlBlock *s, uint8_t *elf_data,
                             size_t elf_size);
 void task_control_block_free(TaskControlBlock *s);
@@ -74,12 +85,11 @@ TaskControlBlock *task_control_block_spawn(TaskControlBlock *parent,
                                            uint8_t *elf_data, size_t elf_size);
 
 // task_manager.c
-void task_manager_new();
-void task_manager_free();
-void task_manager_add(TaskManager *tm, TaskControlBlock *task);
-TaskControlBlock *task_manager_fetch(TaskManager *tm);
-void task_manager_add_task(TaskControlBlock *task);
+void task_manager_init();
+bool task_manager_almost_full();
+int64_t task_manager_add_task(TaskControlBlock *task);
 TaskControlBlock *task_manager_fetch_task();
+TaskControlBlock *task_manager_fetch_task_by_pid(uint64_t pid);
 
 // task_context.c
 void task_context_zero_init(TaskContext *cx);
