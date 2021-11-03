@@ -22,7 +22,7 @@ void frame_allocator_init() {
 void frame_allocator_free() { vector_free(&FRAME_ALLOCATOR.recycled); }
 
 PhysPageNum frame_alloc() {
-  PhysPageNum ppn;
+  PhysPageNum ppn = 0;
   if (!vector_empty(&FRAME_ALLOCATOR.recycled)) {
     ppn = *(PhysPageNum *)vector_back(&FRAME_ALLOCATOR.recycled);
     vector_pop(&FRAME_ALLOCATOR.recycled);
