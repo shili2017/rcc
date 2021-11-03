@@ -17,7 +17,8 @@ typedef struct {
 } Pipe;
 
 typedef struct {
-  int64_t ref;
+  int64_t proc_ref;
+  int64_t file_ref;
   Pipe *pipe;
   bool is_pipe;
   bool readable;

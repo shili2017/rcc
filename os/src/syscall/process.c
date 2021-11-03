@@ -15,18 +15,21 @@ int64_t sys_close(uint64_t fd) {
   TaskControlBlock *task = processor_current_task();
   File *file = task->fd_table[fd];
 
-  if (fd <= 2 || fd > MAX_FILE_NUM || !file || file->ref < 1) {
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file || file->file_ref < 1) {
     return -1;
   }
-  if (--file->ref > 0) {
+  if (--file->file_ref > 0) {
     return 0;
   }
   if (file->is_pipe) {
     pipe_close(file->pipe, file->writable);
   }
 
-  bd_free(file);
-  file = NULL;
+  file->file_ref = 0;
+  file->pipe = NULL;
+  file->is_pipe = false;
+  file->readable = false;
+  file->writable = false;
   return 0;
 }
 

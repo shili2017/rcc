@@ -15,13 +15,11 @@ int64_t pipe_make(File *f0, File *f1) {
   pipe->read_open = true;
   pipe->write_open = true;
 
-  f0->ref = 1;
   f0->pipe = pipe;
   f0->is_pipe = true;
   f0->readable = true;
   f0->writable = false;
 
-  f1->ref = 1;
   f1->pipe = pipe;
   f1->is_pipe = true;
   f1->readable = false;

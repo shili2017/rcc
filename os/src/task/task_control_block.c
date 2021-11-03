@@ -18,6 +18,12 @@ int64_t task_control_block_alloc_fd(TaskControlBlock *s) {
     if (s->fd_table[i] == NULL) {
       s->fd_table[i] = bd_malloc(sizeof(File));
       memset(s->fd_table[i], 0, sizeof(File));
+      s->fd_table[i]->proc_ref = 1;
+      s->fd_table[i]->file_ref = 1;
+      return i;
+    } else if (s->fd_table[i]->file_ref == 0) {
+      memset(s->fd_table[i], 0, sizeof(File));
+      s->fd_table[i]->file_ref = 1;
       return i;
     }
   }
@@ -30,14 +36,13 @@ void task_control_block_dealloc_fd(TaskControlBlock *s) {
   for (uint64_t i = 3; i < MAX_FILE_NUM; i++) {
     file = s->fd_table[i];
     if (file) {
-      if (--file->ref > 0) {
+      if (--file->proc_ref > 0) {
         continue;
       }
       if (file->is_pipe) {
         pipe_close(file->pipe, file->writable);
       }
       bd_free(file);
-      s->fd_table[i] = NULL;
     }
   }
 }
@@ -130,7 +135,8 @@ TaskControlBlock *task_control_block_fork(TaskControlBlock *parent) {
   memset(s->fd_table, 0, MAX_FILE_NUM * sizeof(File *));
   for (uint64_t i = 0; i < MAX_FILE_NUM; i++) {
     if (parent->fd_table[i] != NULL) {
-      parent->fd_table[i]->ref++;
+      parent->fd_table[i]->proc_ref++;
+      parent->fd_table[i]->file_ref++;
       s->fd_table[i] = parent->fd_table[i];
     }
   }
