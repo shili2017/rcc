@@ -16,12 +16,14 @@ int64_t pipe_make(File *f0, File *f1) {
   pipe->write_open = true;
 
   f0->pipe = pipe;
-  f0->is_pipe = true;
+  f0->inode = NULL;
+  f0->type = FD_PIPE;
   f0->readable = true;
   f0->writable = false;
 
   f1->pipe = pipe;
-  f1->is_pipe = true;
+  f1->inode = NULL;
+  f1->type = FD_PIPE;
   f1->readable = false;
   f1->writable = true;
 

@@ -11,5 +11,6 @@ void virtio_disk_intr(void);
 // virtio_blk.c
 void virtio_read_block(BlockCache *);
 void virtio_write_block(BlockCache *);
+BlockDevice *virtio_block_device_init();
 
 #endif // _DRIVERS_H_

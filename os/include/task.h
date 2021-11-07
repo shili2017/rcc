@@ -51,6 +51,7 @@ struct TaskControlBlock {
   int exit_code;
   File *fd_table[MAX_FILE_NUM];
   Mailbox mailbox;
+  OSInode *elf_inode;
 
   // stride scheduling
   uint64_t priority;

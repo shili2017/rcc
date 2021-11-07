@@ -4,6 +4,10 @@
 
 int64_t syscall(uint64_t syscall_id, uint64_t a0, uint64_t a1, uint64_t a2) {
   switch (syscall_id) {
+  case SYSCALL_DUP:
+    return sys_dup(a0);
+  case SYSCALL_OPEN:
+    return sys_open((char *)a0, (uint32_t)a1);
   case SYSCALL_CLOSE:
     return sys_close(a0);
   case SYSCALL_PIPE:

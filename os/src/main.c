@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include "loader.h"
+#include "fs.h"
 #include "log.h"
 #include "task.h"
 #include "timer.h"
@@ -25,7 +25,7 @@ void main() {
 
   trap_init();
 
-  loader_init_and_list_apps();
+  inode_list_apps();
 
   task_init();
 

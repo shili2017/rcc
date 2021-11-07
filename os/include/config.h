@@ -17,8 +17,7 @@
 #define APP_BASE_ADDRESS 0x80400000
 #define APP_SIZE_LIMIT 0x20000
 
-#define MAX_APP_NUM 64
-#define MAX_APP_NAME_LENGTH 64
+#define MAX_APP_SIZE (1024 * 1024)
 
 // kernel stack in kernel space
 #define kernel_stack_position_top(x)                                           \
@@ -31,5 +30,8 @@
 
 // virtio mmio interface
 #define VIRTIO0 0x10001000
+
+#define MMIO_NUM 1
+const static uint64_t MMIO[MMIO_NUM][2] = {{0x10001000, 0x1000}};
 
 #endif // _CONFIG_H_
