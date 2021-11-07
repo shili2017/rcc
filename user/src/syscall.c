@@ -16,6 +16,12 @@ static inline int64_t syscall(uint64_t id, uint64_t a0, uint64_t a1,
   return ret;
 }
 
+int64_t dup(uint64_t fd) { return syscall(SYSCALL_DUP, fd, 0, 0); }
+
+int64_t open(char *path, uint32_t flags) {
+  return syscall(SYSCALL_OPEN, (uint64_t)path, (uint64_t)flags, 0);
+}
+
 int64_t close(uint64_t fd) { return syscall(SYSCALL_CLOSE, fd, 0, 0); }
 
 int64_t pipe(uint64_t *pipe) {
