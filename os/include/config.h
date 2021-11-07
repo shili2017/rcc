@@ -9,6 +9,7 @@
 #define MEMORY_END 0x80800000
 #define PAGE_SIZE 0x1000
 #define PAGE_SIZE_BITS 0xc
+#define PAGE_SHIFT 12
 
 #define TRAMPOLINE (UINT64_MAX - PAGE_SIZE + 1)
 #define TRAP_CONTEXT (TRAMPOLINE - PAGE_SIZE)
@@ -27,5 +28,8 @@
 
 // clock freq for qemu
 #define CLOCK_FREQ 10000000
+
+// virtio mmio interface
+#define VIRTIO0 0x10001000
 
 #endif // _CONFIG_H_
