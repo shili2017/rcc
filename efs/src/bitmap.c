@@ -10,6 +10,18 @@ void bitmap_new(Bitmap *b, uint64_t start_block_id, uint64_t blocks) {
   b->blocks = blocks;
 }
 
+static uint64_t _ctzll(uint64_t x) {
+  uint64_t ret = 0;
+  for (uint64_t i = 0; i < 64; i++) {
+    if ((x & (1LL << i)) == 0) {
+      ret++;
+    } else {
+      break;
+    }
+  }
+  return ret;
+}
+
 // return UINT64_MAX (-1) when alloc fails
 uint64_t bitmap_alloc(Bitmap *b, BlockDevice *device) {
   BlockCache *bc;
@@ -21,11 +33,7 @@ uint64_t bitmap_alloc(Bitmap *b, BlockDevice *device) {
     bitmap_block = (BitmapBlock *)bc->cache;
     for (bits64_pos = 0; bits64_pos < 64; bits64_pos++) {
       if (bitmap_block[bits64_pos] != UINT64_MAX) {
-        // todo: check this builtin function
-        // Built-in Function: int __builtin_ctzll (unsigned long long)
-        // Returns the number of trailing 0-bits in x, starting at the least
-        // significant bit position. If x is 0, the result is undefined.
-        inner_pos = __builtin_ctzll(~bitmap_block[bits64_pos]);
+        inner_pos = _ctzll(~bitmap_block[bits64_pos]);
         // modify cache
         bitmap_block[bits64_pos] |= (1LL << inner_pos);
         block_cache_release(bc);

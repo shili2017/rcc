@@ -25,7 +25,7 @@ OBJ = $(addprefix $(DST_DIR)/, $(addsuffix .o, $(basename $(SRC))))
 # Flags
 INCFLAGS = -I$(WORK_DIR)/include -I$(LIB_DIR)/include -I$(KERNEL_DIR)/include
 COMMON_FLAGS = -fno-pic -mcmodel=medany
-CFLAGS = $(COMMON_FLAGS) -static -O2 -MMD -Wall -ggdb $(INCFLAGS) \
+CFLAGS = $(COMMON_FLAGS) -static -O0 -MMD -Wall -ggdb $(INCFLAGS) \
          -fno-builtin -fno-stack-protector -ffreestanding -Wno-main
 
 # Build target

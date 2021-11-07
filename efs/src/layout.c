@@ -34,7 +34,7 @@ bool disk_inode_is_file(DiskInode *d) {
   return d->type_ == DISK_INODE_FILE;
 }
 
-inline uint32_t _disk_inode_data_blocks(uint32_t size) {
+static uint32_t _disk_inode_data_blocks(uint32_t size) {
   return (size + BLOCK_SZ - 1) / BLOCK_SZ;
 }
 
