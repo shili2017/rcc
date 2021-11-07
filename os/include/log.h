@@ -51,10 +51,10 @@
     shutdown();                                                                \
   } while (0)
 
-#define assert(cond, ...)                                                      \
+#define assert(cond)                                                           \
   do {                                                                         \
     if (!(cond)) {                                                             \
-      panic(__VA_ARGS__);                                                      \
+      panic("[ASSERT]\n");                                                     \
     }                                                                          \
   } while (0)
 

@@ -41,7 +41,7 @@ int64_t pipe_close(Pipe *pipe, bool writable) {
 }
 
 int64_t pipe_read(Pipe *pipe, char *buf, uint64_t len) {
-  assert(len > 1, "pipe_read len <= 0\n");
+  assert(len > 1);
 
   uint64_t i = 0;
   uint64_t size = -1;
@@ -70,7 +70,7 @@ int64_t pipe_read(Pipe *pipe, char *buf, uint64_t len) {
 }
 
 int64_t pipe_write(Pipe *pipe, char *buf, uint64_t len) {
-  assert(len > 1, "pipe_write len <= 0\n");
+  assert(len > 1);
 
   uint64_t i = 0;
   uint64_t size = -1;
