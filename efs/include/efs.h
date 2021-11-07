@@ -8,19 +8,20 @@
 
 #define BLOCK_SZ 512
 
+typedef struct BlockCache BlockCache;
+
 typedef struct {
-  void (*read_block)(uint64_t block_id, uint8_t *buf);
-  void (*write_block)(uint64_t block_id, uint8_t *buf);
+  void (*read_block)(BlockCache *b);
+  void (*write_block)(BlockCache *b);
 } BlockDevice;
 
 // block_cache.c
-
-typedef struct BlockCache BlockCache;
 
 struct BlockCache {
   uint8_t cache[BLOCK_SZ];
   uint64_t block_id;
   BlockDevice *block_device;
+  bool disk; // does disk "own" BlockCache?
   bool modified;
   BlockCache *prev;
   BlockCache *next;
