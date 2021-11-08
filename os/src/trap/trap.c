@@ -1,17 +1,49 @@
 #include "trap.h"
+#include "drivers.h"
 #include "log.h"
 #include "riscv.h"
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
 
+static void trap_from_kernel_interrupt(uint64_t cause) {
+  int irq;
+  switch (cause) {
+  case SupervisorExternal:
+    irq = plic_claim();
+    if (irq == VIRTIO0_IRQ) {
+      virtio_disk_intr();
+    } else if (irq) {
+      error("unexpected interrupt irq=%d\n", irq);
+    }
+    if (irq)
+      plic_complete(irq);
+    break;
+  default:
+    panic("device interrupt: scause = 0x%llx, stval = 0x%llx sepc = 0x%llx\n",
+          r_scause(), r_stval(), r_sepc());
+    break;
+  }
+}
+
 void trap_from_kernel() {
   uint64_t scause = r_scause();
+  uint64_t sstatus = r_sstatus();
   uint64_t sepc = r_sepc();
   uint64_t stval = r_stval();
 
-  panic("A trap from kernel! (scause = 0x%llx sepc = 0x%llx stval = 0x%llx)\n",
-        scause, sepc, stval);
+  if ((sstatus & SSTATUS_SPP) == 0)
+    panic("kernel trap: not from supervisor mode\n");
+
+  if (scause & (1ULL << 63)) {
+    trap_from_kernel_interrupt(scause & 0xff);
+  } else {
+    panic("invalid kernel trap: scause = 0x%llx stval = 0x%llx sepc = 0x%llx\n",
+          scause, stval, sepc);
+  }
+
+  w_sepc(sepc);
+  w_sstatus(sstatus);
 }
 
 static inline void set_kernel_trap_entry() {
@@ -27,7 +59,7 @@ static inline void set_user_trap_entry() {
 void trap_init() {
   // Trap init
   set_kernel_trap_entry();
-  w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);
+  w_sie(r_sie() | SIE_SEIE | SIE_SSIE);
 }
 
 void trap_enable_timer_interrupt() {
