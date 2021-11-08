@@ -1,5 +1,6 @@
 #include <stdint.h>
 
+#include "drivers.h"
 #include "fs.h"
 #include "log.h"
 #include "task.h"
@@ -18,6 +19,8 @@ void main() {
   clear_bss();
 
   info("Hello, world!\n");
+
+  plic_init();
 
   mm_init();
 

@@ -10,7 +10,7 @@ void trap_from_kernel() {
   uint64_t sepc = r_sepc();
   uint64_t stval = r_stval();
 
-  panic("A trap from kernel! (scause = 0x%llx, sepc = 0x%llx stval = 0x%llx)\n",
+  panic("A trap from kernel! (scause = 0x%llx sepc = 0x%llx stval = 0x%llx)\n",
         scause, sepc, stval);
 }
 
@@ -27,12 +27,12 @@ static inline void set_user_trap_entry() {
 void trap_init() {
   // Trap init
   set_kernel_trap_entry();
+  w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);
 }
 
 void trap_enable_timer_interrupt() {
-  uint64_t sie = r_sie();
-  sie = sie | SIE_STIE;
-  w_sie(sie);
+  // Trap enable timer interrupt
+  w_sie(r_sie() | SIE_STIE);
 }
 
 void trap_handler() {

@@ -184,8 +184,6 @@ static int alloc3_desc(int *idx) {
   return 0;
 }
 
-extern int PID;
-
 void virtio_disk_rw(BlockCache *b, int write) {
   uint64_t sector = b->block_id * (BLOCK_SZ / 512);
   // the spec's Section 5.2 says that legacy block operations use
@@ -197,7 +195,7 @@ void virtio_disk_rw(BlockCache *b, int write) {
     if (alloc3_desc(idx) == 0) {
       break;
     }
-    task_suspend_current_and_run_next();
+    // yield();
   }
   // format the three descriptors.
   // qemu's virtio-blk.c reads them.

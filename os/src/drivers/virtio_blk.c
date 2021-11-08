@@ -10,6 +10,7 @@ void virtio_read_block(BlockCache *b) { virtio_disk_rw(b, R); }
 void virtio_write_block(BlockCache *b) { virtio_disk_rw(b, W); }
 
 BlockDevice *virtio_block_device_init() {
+  virtio_disk_init();
   static BlockDevice BLOCK_DEVICE;
   BLOCK_DEVICE.read_block = virtio_read_block;
   BLOCK_DEVICE.write_block = virtio_write_block;
