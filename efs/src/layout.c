@@ -47,7 +47,7 @@ uint32_t disk_inode_data_blocks(DiskInode *d) {
 uint32_t disk_inode_total_blocks(uint32_t size) {
   uint32_t data_blocks = _disk_inode_data_blocks(size);
   uint32_t total = data_blocks;
-  // indirect 1
+  // indirect1
   if (data_blocks > INODE_DIRECT_COUNT) {
     total += 1;
   }

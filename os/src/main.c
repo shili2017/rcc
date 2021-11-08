@@ -25,6 +25,8 @@ void main() {
 
   trap_init();
 
+  inode_root_init();
+
   inode_list_apps();
 
   task_init();

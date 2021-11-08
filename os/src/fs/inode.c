@@ -25,6 +25,7 @@ static Inode ROOT_INODE;
 void inode_root_init() {
   static EasyFileSystem efs;
   BlockDevice *device = virtio_block_device_init();
+  block_cache_manager_init();
   efs_open(&efs, device);
   efs_root_inode(&ROOT_INODE, &efs);
 }
