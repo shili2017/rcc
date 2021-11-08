@@ -16,9 +16,8 @@ void task_init() {
   }
   uint64_t initproc_elf_size = inode_read_all(INITPROC.elf_inode, initproc_elf);
   task_control_block_new(&INITPROC, initproc_elf, initproc_elf_size);
+  task_manager_add_task(&INITPROC);
 }
-
-void task_add_initproc() { task_manager_add_task(&INITPROC); }
 
 void task_suspend_current_and_run_next() {
   // There must be an application running.

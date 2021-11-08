@@ -22,19 +22,13 @@ void main() {
 
   mm_init();
 
-  mm_remap_test();
-
   trap_init();
 
   plic_init();
 
   inode_root_init();
 
-  inode_list_apps();
-
   task_init();
-
-  task_add_initproc();
 
   trap_enable_timer_interrupt();
 

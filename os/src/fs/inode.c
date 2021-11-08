@@ -21,13 +21,14 @@ uint64_t inode_read_all(OSInode *osinode, uint8_t *buf) {
 }
 
 static Inode ROOT_INODE;
+static EasyFileSystem EFS;
 
 void inode_root_init() {
-  static EasyFileSystem efs;
   BlockDevice *device = virtio_block_device_init();
   block_cache_manager_init();
-  efs_open(&efs, device);
-  efs_root_inode(&ROOT_INODE, &efs);
+  efs_open(&EFS, device);
+  efs_root_inode(&ROOT_INODE, &EFS);
+  inode_list_apps();
 }
 
 void inode_list_apps() {

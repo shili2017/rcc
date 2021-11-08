@@ -66,7 +66,6 @@ typedef struct {
 
 // task.c
 void task_init();
-void task_add_initproc();
 void task_suspend_current_and_run_next();
 void task_exit_current_and_run_next(int exit_code);
 MemorySet *task_current_memory_set();
