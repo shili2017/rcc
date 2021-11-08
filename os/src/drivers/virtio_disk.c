@@ -70,7 +70,7 @@ static struct disk {
   struct virtio_blk_req ops[NUM];
 } __attribute__((aligned(PAGE_SIZE))) disk;
 
-void virtio_disk_init(void) {
+void virtio_disk_init() {
   uint32_t status = 0;
 
   if (*R(VIRTIO_MMIO_MAGIC_VALUE) != 0x74726976 ||
