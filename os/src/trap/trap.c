@@ -59,15 +59,16 @@ static inline void set_user_trap_entry() {
 void trap_init() {
   // Trap init
   set_kernel_trap_entry();
-  w_sie(r_sie() | SIE_SEIE | SIE_SSIE);
+  w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);
 }
 
 void trap_enable_timer_interrupt() {
   // Trap enable timer interrupt
-  w_sie(r_sie() | SIE_STIE);
+  intr_on();
 }
 
 void trap_handler() {
+  intr_off();
   set_kernel_trap_entry();
 
   TrapContext *cx = processor_current_trap_cx();
@@ -114,6 +115,7 @@ void trap_handler() {
     }
   }
 
+  intr_on();
   trap_return();
 }
 

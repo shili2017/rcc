@@ -8,7 +8,7 @@
 #include "log.h"
 
 uint64_t inode_read_all(OSInode *osinode, uint8_t *buf) {
-  uint64_t len = 0;
+  uint64_t len = 0, ret = 0;
   while (1) {
     len = inode_read_at(&osinode->inode, osinode->offset, buf, BLOCK_SZ);
     if (len == 0) {
@@ -16,8 +16,9 @@ uint64_t inode_read_all(OSInode *osinode, uint8_t *buf) {
     }
     osinode->offset += len;
     buf += len;
+    ret += len;
   }
-  return len;
+  return ret;
 }
 
 static Inode ROOT_INODE;

@@ -219,7 +219,7 @@ int64_t sys_exec(char *path) {
   static uint8_t data[MAX_APP_SIZE];
   size_t size;
   TaskControlBlock *task;
-  OSInode *inode = inode_open_file(path, O_RDONLY);
+  OSInode *inode = inode_open_file(app_name, O_RDONLY);
 
   if (inode) {
     task = processor_current_task();
