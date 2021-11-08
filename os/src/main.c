@@ -20,13 +20,13 @@ void main() {
 
   info("Hello, world!\n");
 
-  plic_init();
-
   mm_init();
 
   mm_remap_test();
 
   trap_init();
+
+  plic_init();
 
   inode_root_init();
 
