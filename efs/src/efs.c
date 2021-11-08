@@ -66,6 +66,7 @@ void efs_open(EasyFileSystem *efs, BlockDevice *device) {
   bitmap_new(&efs->data_bitmap, 1 + inode_total_blocks, sb->data_bitmap_blocks);
   efs->inode_area_start_block = 1 + sb->inode_bitmap_blocks;
   efs->data_area_start_block = 1 + inode_total_blocks + sb->data_bitmap_blocks;
+  efs->block_device = device;
 
   block_cache_release(bc);
 }
