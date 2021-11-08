@@ -13,7 +13,7 @@ void bitmap_new(Bitmap *b, uint64_t start_block_id, uint64_t blocks) {
 static uint64_t _ctzll(uint64_t x) {
   uint64_t ret = 0;
   for (uint64_t i = 0; i < 64; i++) {
-    if ((x & (1LL << i)) == 0) {
+    if ((x & (1ULL << i)) == 0) {
       ret++;
     } else {
       break;
@@ -35,7 +35,7 @@ uint64_t bitmap_alloc(Bitmap *b, BlockDevice *device) {
       if (bitmap_block[bits64_pos] != UINT64_MAX) {
         inner_pos = _ctzll(~bitmap_block[bits64_pos]);
         // modify cache
-        bitmap_block[bits64_pos] |= (1LL << inner_pos);
+        bitmap_block[bits64_pos] |= (1ULL << inner_pos);
         block_cache_release(bc);
         return block_id * BLOCK_BITS + bits64_pos * 64 + inner_pos;
       }
@@ -52,8 +52,8 @@ void bitmap_dealloc(Bitmap *b, BlockDevice *device, uint64_t bit) {
   BlockCache *bc = block_cache_get(block_pos + b->start_block_id, device);
   bc->modified = true;
   BitmapBlock *bitmap_block = (BitmapBlock *)bc->cache;
-  assert((bitmap_block[bits64_pos] & (1LL << inner_pos)) != 0);
-  bitmap_block[bits64_pos] -= (1LL << inner_pos);
+  assert((bitmap_block[bits64_pos] & (1ULL << inner_pos)) != 0);
+  bitmap_block[bits64_pos] -= (1ULL << inner_pos);
   block_cache_release(bc);
 }
 
