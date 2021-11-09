@@ -46,25 +46,27 @@ void trap_from_kernel() {
   w_sstatus(sstatus);
 }
 
+void kernelvec();
+
 static inline void set_kernel_trap_entry() {
   // write to stvec - trap_from_kernel
-  w_stvec((uint64_t)trap_from_kernel);
+  w_stvec((uint64_t)kernelvec & ~0x3);
 }
 
 static inline void set_user_trap_entry() {
   // write to stvec - TRAMPOLINE
-  w_stvec((uint64_t)TRAMPOLINE);
+  w_stvec((uint64_t)TRAMPOLINE & ~0x3);
 }
 
 void trap_init() {
   // Trap init
   set_kernel_trap_entry();
-  w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);
+  w_sie(r_sie() | SIE_SEIE | SIE_SSIE);
 }
 
 void trap_enable_timer_interrupt() {
   // Trap enable timer interrupt
-  intr_on();
+  w_sie(r_sie() | SIE_STIE);
 }
 
 void trap_handler() {
