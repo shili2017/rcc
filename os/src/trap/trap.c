@@ -9,6 +9,9 @@
 static void trap_from_kernel_interrupt(uint64_t cause) {
   int irq;
   switch (cause) {
+  case SupervisorTimer:
+    timer_set_next_trigger();
+    break;
   case SupervisorExternal:
     irq = plic_claim();
     if (irq == VIRTIO0_IRQ) {
