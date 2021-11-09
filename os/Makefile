@@ -126,5 +126,6 @@ clean:
 clean-all: clean
 	cd $(LIB_DIR) && $(MAKE) clean
 	cd $(USER_DIR) && $(MAKE) clean
+	cd $(EFS_DIR) && $(MAKE) clean
 
 .PHONY: default build build-lib build-user run debug-run debug-gdb clean clean-all fs-img
