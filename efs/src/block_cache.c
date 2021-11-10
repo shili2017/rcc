@@ -7,10 +7,10 @@
 static void block_cache_new(BlockCache *block_cache, uint64_t block_id,
                             BlockDevice *block_device) {
   memset(block_cache->cache, 0, BLOCK_SZ);
-  block_cache->block_device->read_block(block_cache);
   block_cache->block_id = block_id;
   block_cache->block_device = block_device;
   block_cache->modified = false;
+  block_cache->block_device->read_block(block_cache);
 }
 
 static void block_cache_sync(BlockCache *block_cache) {
