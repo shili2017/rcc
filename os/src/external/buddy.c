@@ -33,7 +33,7 @@ typedef struct sz_info Sz_info;
 
 static Sz_info *bd_sizes;
 static void *bd_base; // start address of memory managed by the buddy allocator
-static struct spinlock lock;
+// static struct spinlock lock;
 
 // Return 1 if bit at position index in array is set to 1
 int bit_isset(char *array, int index) {
