@@ -24,8 +24,7 @@ OBJ = $(addprefix $(DST_DIR)/, $(addsuffix .o, $(basename $(SRC))))
 LINKER_SCRIPT = $(WORK_DIR)/src/linker.ld
 
 # Image (todo)
-FS_IMG = ../fs.img
-APPS = ../user/src/bin/*
+FS_IMG = $(USER_DIR)/fs.img
 
 # Library (libc)
 LIB_DIR = $(realpath ../libc)

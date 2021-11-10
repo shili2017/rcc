@@ -33,6 +33,11 @@ APPS_OBJ = $(addprefix $(DST_DIR)/$(APPS_DIR)/, $(addsuffix .o, $(APPS)))
 APPS_ELF = $(addprefix $(BUILD_DIR)/, $(addsuffix .elf, $(APPS)))
 APPS_LINKER_SCRIPT = $(WORK_DIR)/src/linker.ld
 
+# Build target 3: fs.img
+FS_IMG = fs.img
+EFS_FUSE = efs-fuse
+EFS_FUSE_DIR = $(realpath ../efs-fuse)
+
 # Flags
 INCFLAGS = -I$(WORK_DIR)/include -I$(LIB_DIR)/include
 COMMON_FLAGS = -fno-pic -mcmodel=medany
@@ -42,9 +47,12 @@ ASFLAGS = $(COMMON_FLAGS) -O0 -MMD $(INCFLAGS)
 LDFLAGS = -melf64lriscv -T $(APPS_LINKER_SCRIPT) \
 				  -L$(LIB_BUILD_DIR) -l$(LIB_NAME) -L$(BUILD_DIR) -l$(USER_LIB_NAME) -g
 
-default: build
+default: $(FS_IMG)
 
-build: build-lib $(USER_LIB) $(APPS_ELF) $(APPS_OBJ)
+$(FS_IMG): build-lib $(USER_LIB) $(APPS_ELF) $(APPS_OBJ)
+	cd $(EFS_FUSE_DIR) && $(MAKE)
+	cp $(EFS_FUSE_DIR)/$(EFS_FUSE) .
+	./$(EFS_FUSE) $@ $(APPS_ELF)
 
 build-lib:
 	cd $(LIB_DIR) && $(MAKE)
@@ -69,5 +77,6 @@ $(DST_DIR)/%.o: %.S
 
 clean:
 	-rm -rf $(BUILD_DIR)
+	-rm -rf efs-fuse
 
-.PHONY: default build build-lib clean
+.PHONY: default build-lib clean
