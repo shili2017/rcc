@@ -79,7 +79,7 @@ void bd_print_vector(char *vector, int len) {
 // Print buddy's data structures
 void bd_print() {
   for (int k = 0; k < nsizes; k++) {
-    info("size %d (blksz %d nblk %d): free list: ", k, BLK_SIZE(k), NBLK(k));
+    info("size %d (blksz %ld nblk %d): free list: ", k, BLK_SIZE(k), NBLK(k));
     lst_print(&bd_sizes[k].free);
     info("  alloc:");
     bd_print_vector(bd_sizes[k].alloc, NBLK(k));
@@ -193,7 +193,7 @@ int blk_index_next(int k, char *p) {
   return n;
 }
 
-int log2(uint64_t n) {
+static int _log2(uint64_t n) {
   int k = 0;
   while (n > 1) {
     k++;
@@ -258,7 +258,7 @@ int bd_initfree(void *bd_left, void *bd_right) {
 // Mark the range [bd_base,p) as allocated
 int bd_mark_data_structures(char *p) {
   int meta = p - (char *)bd_base;
-  info("bd: %d meta bytes for managing %d bytes of memory\n", meta,
+  info("bd: %d meta bytes for managing %ld bytes of memory\n", meta,
        BLK_SIZE(MAXSIZE));
   bd_mark(bd_base, p);
   return meta;
@@ -281,16 +281,16 @@ void bd_init(void *base, void *end) {
   char *p = (char *)ROUNDUP((uint64_t)base, LEAF_SIZE);
   int sz;
 
-  initlock(&lock, "buddy");
+  // initlock(&lock, "buddy");
   bd_base = (void *)p;
 
   // compute the number of sizes we need to manage [base, end)
-  nsizes = log2(((char *)end - p) / LEAF_SIZE) + 1;
+  nsizes = _log2(((char *)end - p) / LEAF_SIZE) + 1;
   if ((char *)end - p > BLK_SIZE(MAXSIZE)) {
     nsizes++; // round up to the next power of 2
   }
 
-  info("bd: memory sz is %d bytes; allocate an size array of length %d\n",
+  info("bd: memory sz is %ld bytes; allocate an size array of length %d\n",
        (char *)end - p, nsizes);
 
   // allocate bd_sizes array
@@ -331,7 +331,7 @@ void bd_init(void *base, void *end) {
 
   // check if the amount that is free is what we expect
   if (free != BLK_SIZE(MAXSIZE) - meta - unavailable) {
-    info("free %d %d\n", free, BLK_SIZE(MAXSIZE) - meta - unavailable);
+    info("free %d %ld\n", free, BLK_SIZE(MAXSIZE) - meta - unavailable);
     panic("bd_init: free mem\n");
   }
 }
