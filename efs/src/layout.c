@@ -338,6 +338,6 @@ void dir_entry_empty(DirEntry *e) {
 }
 
 void dir_entry_new(DirEntry *e, char *name, uint32_t inode_number) {
-  memcpy(e->name, name, NAME_LENGTH_LIMIT + 1);
+  memcpy(e->name, name, MIN(strlen(name), NAME_LENGTH_LIMIT + 1));
   e->inode_number = inode_number;
 }
