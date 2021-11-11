@@ -5,8 +5,6 @@
 #include "string.h"
 #include "task.h"
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
 int64_t pipe_make(File *f0, File *f1) {
   Pipe *pipe = bd_malloc(sizeof(Pipe));
   memset(pipe, 0, sizeof(Pipe));

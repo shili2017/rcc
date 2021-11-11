@@ -42,7 +42,7 @@ int64_t sys_open(char *path, uint32_t flags) {
                    (uint8_t *)path, NAME_LENGTH_LIMIT + 1, FROM_USER);
 
   int64_t fd = -1;
-  OSInode *inode = inode_open_file(path, flags);
+  OSInode *inode = inode_open_file(file_name, flags);
   if (inode) {
     fd = task_control_block_alloc_fd(task);
     task->fd_table[fd]->pipe = NULL;

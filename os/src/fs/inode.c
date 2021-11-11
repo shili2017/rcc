@@ -6,6 +6,7 @@
 #include "fcntl.h"
 #include "fs.h"
 #include "log.h"
+#include "mm.h"
 
 uint64_t inode_read_all(OSInode *osinode, uint8_t *buf) {
   uint64_t len = 0, ret = 0;
@@ -88,18 +89,26 @@ int64_t inode_close_file(OSInode *osinode) {
   return 0;
 }
 
+static uint8_t FS_BUFFER[FS_BUFFER_SIZE];
+
 int64_t inode_read(OSInode *osinode, char *buf, uint64_t len) {
+  len = MIN(len, FS_BUFFER_SIZE);
   uint64_t read_size = 0;
-  read_size =
-      inode_read_at(&osinode->inode, osinode->offset, (uint8_t *)buf, len);
+  read_size = inode_read_at(&osinode->inode, osinode->offset,
+                            (uint8_t *)FS_BUFFER, len);
+  copy_byte_buffer(processor_current_user_token(), FS_BUFFER,
+                   (uint8_t *)FS_BUFFER, len, TO_USER);
   osinode->offset += read_size;
   return read_size;
 }
 
 int64_t inode_write(OSInode *osinode, char *buf, uint64_t len) {
+  len = MIN(len, FS_BUFFER_SIZE);
   uint64_t write_size = 0;
-  write_size =
-      inode_write_at(&osinode->inode, osinode->offset, (uint8_t *)buf, len);
+  copy_byte_buffer(processor_current_user_token(), FS_BUFFER, (uint8_t *)buf,
+                   len, FROM_USER);
+  write_size = inode_write_at(&osinode->inode, osinode->offset,
+                              (uint8_t *)FS_BUFFER, len);
   assert(write_size == len);
   osinode->offset += write_size;
   return write_size;
