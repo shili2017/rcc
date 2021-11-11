@@ -55,20 +55,23 @@ int main(int argc, char *argv[]) {
 
   // 16MiB, at most 4095 files
   EasyFileSystem *efs = &EFS;
+  block_cache_manager_init();
   efs_create(efs, block_device, 16 * 2048, 1);
 
   Inode *root_inode = &ROOT_INODE;
   efs_root_inode(root_inode, efs);
 
+  char app_name_buf[512];
   char *app;
-  char all_data[MAX_APP_SIZE];
+  char *all_data;
   FILE *host_file;
   uint64_t host_file_size = 0;
   Inode inode;
 
   for (uint64_t i = 2; i < argc; i++) {
     // process app name
-    app = argv[i];
+    strcpy(app_name_buf, argv[i]);
+    app = app_name_buf;
     for (int64_t i = strlen(app) - 1; i >= 0; i--) {
       if (app[i] == '/') {
         app = app + i + 1;
@@ -83,19 +86,25 @@ int main(int argc, char *argv[]) {
     }
 
     // load app data from host file system
-    host_file = fopen("textfile.txt", "rb");
+    host_file = fopen(argv[i], "rb");
+    printf("%s - %s\n", argv[i], app);
+    assert(host_file);
     fseek(host_file, 0, SEEK_END);
     host_file_size = ftell(host_file);
     assert(host_file_size <= MAX_APP_SIZE);
+    all_data = malloc(host_file_size);
+
     fseek(host_file, 0, SEEK_SET);
     fread(all_data, 1, host_file_size, host_file);
     fclose(host_file);
 
     // create a file in efs
-    inode_create(root_inode, app, &inode);
+    assert(inode_create(root_inode, app, &inode) == 0);
 
     // write data to efs
     inode_write_at(&inode, 0, (uint8_t *)all_data, host_file_size);
+
+    free(all_data);
   }
 
   // list apps
