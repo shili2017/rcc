@@ -80,7 +80,7 @@ build-user:
 	cd $(USER_DIR) && $(MAKE)
 
 build-efs:
-	cd $(EFS_DIR) && $(MAKE)
+	cd $(EFS_DIR) && $(MAKE) KERNEL=1
 
 $(KERNEL_ELF): $(OBJ)
 	$(LD) $^ $(LIB) -o $@ $(LDFLAGS)

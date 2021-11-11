@@ -27,6 +27,9 @@ INCFLAGS = -I$(WORK_DIR)/include -I$(LIB_DIR)/include -I$(KERNEL_DIR)/include
 COMMON_FLAGS = -fno-pic -mcmodel=medany
 CFLAGS = $(COMMON_FLAGS) -static -O0 -MMD -Wall -ggdb $(INCFLAGS) \
          -fno-builtin -fno-stack-protector -ffreestanding -Wno-main
+ifeq ($(KERNEL), 1)
+CFLAGS += -D__KERNEL__
+endif
 
 # Build target
 EFS_NAME = efs

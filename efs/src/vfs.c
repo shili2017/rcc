@@ -43,8 +43,16 @@ int64_t inode_find(Inode *inode, char *name, Inode *inode_found) {
   return ret;
 }
 
+#ifdef __KERNEL__
 extern void *bd_malloc(uint64_t);
 extern void bd_free(void *);
+#define MALLOC(x) bd_malloc(x)
+#define FREE(x) bd_free(x)
+#else
+#include <stdlib.h>
+#define MALLOC(x) malloc(x)
+#define FREE(x) free(x)
+#endif
 
 void inode_increase_size(Inode *inode, uint32_t new_size, DiskInode *disk_inode,
                          EasyFileSystem *fs) {
@@ -52,12 +60,12 @@ void inode_increase_size(Inode *inode, uint32_t new_size, DiskInode *disk_inode,
     return;
   }
   uint32_t blocks_needed = disk_inode_blocks_num_needed(disk_inode, new_size);
-  uint32_t *v = bd_malloc(sizeof(uint32_t) * blocks_needed);
+  uint32_t *v = MALLOC(sizeof(uint32_t) * blocks_needed);
   for (uint64_t i = 0; i < blocks_needed; i++) {
     v[i] = efs_alloc_data(fs);
   }
   disk_inode_increase_size(disk_inode, new_size, v, inode->block_device);
-  bd_free(v);
+  FREE(v);
 }
 
 // return 0 if created, -1 if not created
@@ -72,7 +80,7 @@ int64_t inode_create(Inode *inode, char *name, Inode *inode_created) {
   // has the file been created?
   uint32_t inode_id = inode_find_inode_id(inode, name, root_inode);
   block_cache_release(bc);
-  if (inode_id == UINT32_MAX) {
+  if (inode_id != UINT32_MAX) {
     return -1;
   }
 
@@ -165,13 +173,13 @@ void inode_clear(Inode *inode) {
   uint32_t size = di->size;
   uint32_t data_blocks_dealloc_len = disk_inode_data_blocks(di);
   uint32_t *data_blocks_dealloc =
-      bd_malloc(sizeof(uint32_t) * data_blocks_dealloc_len);
+      MALLOC(sizeof(uint32_t) * data_blocks_dealloc_len);
   disk_inode_clear_size(di, data_blocks_dealloc, inode->block_device);
   assert(data_blocks_dealloc_len == disk_inode_total_blocks(size));
   for (uint64_t i = 0; i < data_blocks_dealloc_len; i++) {
     efs_dealloc_data(fs, data_blocks_dealloc[i]);
   }
-  bd_free(data_blocks_dealloc);
+  FREE(data_blocks_dealloc);
   block_cache_release(bc);
 
   block_cache_sync_all();

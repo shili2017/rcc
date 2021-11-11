@@ -4,9 +4,7 @@ WORK_DIR = $(shell pwd)
 BUILD_DIR = $(WORK_DIR)/build/efs-fuse
 TARGET = efs-fuse
 
-SRC = $(wildcard ../efs/src/*.c)
-SRC += ../os/src/external/buddy.c ../os/src/external/list.c
-SRC += main.c
+SRC = $(wildcard ../efs/src/*.c) main.c
 
 OBJ = $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(basename $(SRC))))
 
