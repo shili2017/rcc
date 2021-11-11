@@ -51,6 +51,7 @@ struct TaskControlBlock {
   int exit_code;
   File *fd_table[MAX_FILE_NUM];
   Mailbox mailbox;
+  OSInode *elf_inode;
 
   // stride scheduling
   uint64_t priority;
@@ -65,7 +66,6 @@ typedef struct {
 
 // task.c
 void task_init();
-void task_add_initproc();
 void task_suspend_current_and_run_next();
 void task_exit_current_and_run_next(int exit_code);
 MemorySet *task_current_memory_set();
@@ -97,7 +97,6 @@ void task_context_goto_trap_return(TaskContext *cx, uint64_t kstack_ptr);
 
 // pid.c
 void pid_allocator_init();
-void pid_allocator_free();
 PidHandle pid_alloc();
 void pid_dealloc(PidHandle pid);
 void pid_allocator_print();

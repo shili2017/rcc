@@ -75,13 +75,17 @@ PageTableEntry *page_table_find_pte(PageTable *pt, VirtPageNum vpn) {
 void page_table_map(PageTable *pt, VirtPageNum vpn, PhysPageNum ppn,
                     PTEFlags flags) {
   PageTableEntry *pte = page_table_find_pte_create(pt, vpn);
-  assert(!pte_is_valid(*pte), "VPN 0x%llx is mapped before mapping.\n", vpn);
+  if (pte_is_valid(*pte)) {
+    panic("VPN 0x%llx is mapped before mapping.\n", vpn);
+  }
   *pte = pte_new(ppn, flags | PTE_V);
 }
 
 void page_table_unmap(PageTable *pt, VirtPageNum vpn) {
   PageTableEntry *pte = page_table_find_pte_create(pt, vpn);
-  assert(pte_is_valid(*pte), "VPN 0x%llx is invalid before unmapping.\n", vpn);
+  if (!pte_is_valid(*pte)) {
+    panic("VPN 0x%llx is invalid before unmapping.\n", vpn);
+  }
   *pte = pte_empty();
 }
 

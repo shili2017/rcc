@@ -22,8 +22,13 @@ int64_t task_control_block_alloc_fd(TaskControlBlock *s) {
       s->fd_table[i]->file_ref = 1;
       return i;
     } else if (s->fd_table[i]->file_ref == 0) {
-      memset(s->fd_table[i], 0, sizeof(File));
+      // don't touch proc_ref
       s->fd_table[i]->file_ref = 1;
+      s->fd_table[i]->pipe = NULL;
+      s->fd_table[i]->inode = NULL;
+      s->fd_table[i]->type = FD_NONE;
+      s->fd_table[i]->readable = false;
+      s->fd_table[i]->writable = false;
       return i;
     }
   }
@@ -39,7 +44,7 @@ void task_control_block_dealloc_fd(TaskControlBlock *s) {
       if (--file->proc_ref > 0) {
         continue;
       }
-      if (file->is_pipe) {
+      if (file->type == FD_PIPE) {
         pipe_close(file->pipe, file->writable);
       }
       bd_free(file);

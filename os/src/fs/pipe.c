@@ -5,8 +5,6 @@
 #include "string.h"
 #include "task.h"
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
 int64_t pipe_make(File *f0, File *f1) {
   Pipe *pipe = bd_malloc(sizeof(Pipe));
   memset(pipe, 0, sizeof(Pipe));
@@ -16,12 +14,14 @@ int64_t pipe_make(File *f0, File *f1) {
   pipe->write_open = true;
 
   f0->pipe = pipe;
-  f0->is_pipe = true;
+  f0->inode = NULL;
+  f0->type = FD_PIPE;
   f0->readable = true;
   f0->writable = false;
 
   f1->pipe = pipe;
-  f1->is_pipe = true;
+  f1->inode = NULL;
+  f1->type = FD_PIPE;
   f1->readable = false;
   f1->writable = true;
 
@@ -41,7 +41,7 @@ int64_t pipe_close(Pipe *pipe, bool writable) {
 }
 
 int64_t pipe_read(Pipe *pipe, char *buf, uint64_t len) {
-  assert(len > 1, "pipe_read len <= 0\n");
+  assert(len > 1);
 
   uint64_t i = 0;
   uint64_t size = -1;
@@ -70,7 +70,7 @@ int64_t pipe_read(Pipe *pipe, char *buf, uint64_t len) {
 }
 
 int64_t pipe_write(Pipe *pipe, char *buf, uint64_t len) {
-  assert(len > 1, "pipe_write len <= 0\n");
+  assert(len > 1);
 
   uint64_t i = 0;
   uint64_t size = -1;

@@ -1,7 +1,8 @@
 #include <stdint.h>
 
+#include "efs.h"
+#include "fcntl.h"
 #include "fs.h"
-#include "loader.h"
 #include "log.h"
 #include "mm.h"
 #include "sbi.h"
@@ -10,6 +11,48 @@
 #include "syscall.h"
 #include "task.h"
 #include "timer.h"
+
+int64_t sys_dup(uint64_t fd) {
+  TaskControlBlock *task = processor_current_task();
+  File *file = task->fd_table[fd];
+
+  if (fd <= 2 || fd > MAX_FILE_NUM || !file || file->file_ref < 1 ||
+      file->type == FD_NONE) {
+    return -1;
+  }
+  int64_t new_fd = task_control_block_alloc_fd(task);
+
+  task->fd_table[new_fd]->pipe = task->fd_table[fd]->pipe;
+  task->fd_table[new_fd]->inode = task->fd_table[fd]->inode;
+  task->fd_table[new_fd]->type = task->fd_table[fd]->type;
+  task->fd_table[new_fd]->readable = task->fd_table[fd]->readable;
+  task->fd_table[new_fd]->writable = task->fd_table[fd]->writable;
+
+  if (task->fd_table[fd]->type == FD_INODE) {
+    task->fd_table[fd]->inode->ref++;
+  }
+  return new_fd;
+}
+
+int64_t sys_open(char *path, uint32_t flags) {
+  TaskControlBlock *task = processor_current_task();
+
+  char file_name[NAME_LENGTH_LIMIT + 1];
+  copy_byte_buffer(processor_current_user_token(), (uint8_t *)file_name,
+                   (uint8_t *)path, NAME_LENGTH_LIMIT + 1, FROM_USER);
+
+  int64_t fd = -1;
+  OSInode *inode = inode_open_file(file_name, flags);
+  if (inode) {
+    fd = task_control_block_alloc_fd(task);
+    task->fd_table[fd]->pipe = NULL;
+    task->fd_table[fd]->inode = inode;
+    task->fd_table[fd]->type = FD_INODE;
+    task->fd_table[fd]->readable = (flags & O_WRONLY) == 0;
+    task->fd_table[fd]->writable = (flags & O_RDONLY) == 0;
+  }
+  return fd;
+}
 
 int64_t sys_close(uint64_t fd) {
   TaskControlBlock *task = processor_current_task();
@@ -21,13 +64,17 @@ int64_t sys_close(uint64_t fd) {
   if (--file->file_ref > 0) {
     return 0;
   }
-  if (file->is_pipe) {
+
+  if (file->type == FD_PIPE) {
     pipe_close(file->pipe, file->writable);
+  } else if (file->type == FD_INODE) {
+    inode_close_file(file->inode);
   }
 
   file->file_ref = 0;
   file->pipe = NULL;
-  file->is_pipe = false;
+  file->inode = NULL;
+  file->type = FD_NONE;
   file->readable = false;
   file->writable = false;
   return 0;
@@ -65,8 +112,13 @@ int64_t sys_read(uint64_t fd, char *buf, uint64_t len) {
   if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
     return -1;
   }
-  if (file->is_pipe) {
+  if (!file->readable) {
+    return -1;
+  }
+  if (file->type == FD_PIPE) {
     return pipe_read(file->pipe, buf, len);
+  } else if (file->type == FD_INODE) {
+    return inode_read(file->inode, buf, len);
   }
 
   return -1;
@@ -82,14 +134,21 @@ int64_t sys_write(uint64_t fd, char *buf, uint64_t len) {
   if (fd <= 2 || fd > MAX_FILE_NUM || !file) {
     return -1;
   }
-  if (file->is_pipe) {
-    return pipe_write(file->pipe, buf, len);
+  if (!file->writable) {
+    return -1;
   }
+  if (file->type == FD_PIPE) {
+    return pipe_write(file->pipe, buf, len);
+  } else if (file->type == FD_INODE) {
+    return inode_write(file->inode, buf, len);
+  }
+
   return -1;
 }
 
 int64_t sys_exit(int exit_code) {
-  info("Application exited with code %d\n", exit_code);
+  info("Application (pid = %lld) exited with code %d\n",
+       processor_current_task()->pid, exit_code);
   debug("Remaining physical pages %lld\n", frame_remaining_pages());
   task_exit_current_and_run_next(exit_code);
   panic("Unreachable in sys_exit!\n");
@@ -153,16 +212,19 @@ int64_t sys_fork() {
 }
 
 int64_t sys_exec(char *path) {
-  char app_name[MAX_APP_NAME_LENGTH];
+  char app_name[NAME_LENGTH_LIMIT + 1];
   copy_byte_buffer(processor_current_user_token(), (uint8_t *)app_name,
-                   (uint8_t *)path, MAX_APP_NAME_LENGTH, FROM_USER);
+                   (uint8_t *)path, NAME_LENGTH_LIMIT + 1, FROM_USER);
 
-  uint8_t *data = loader_get_app_data_by_name(app_name);
-  size_t size = loader_get_app_size_by_name(app_name);
+  static uint8_t data[MAX_APP_SIZE];
+  size_t size;
   TaskControlBlock *task;
+  OSInode *inode = inode_open_file(app_name, O_RDONLY);
 
-  if (data) {
+  if (inode) {
     task = processor_current_task();
+    task->elf_inode = inode;
+    size = inode_read_all(task->elf_inode, data);
     task_control_block_exec(task, data, size);
     return 0;
   } else {
@@ -217,16 +279,19 @@ int64_t sys_spawn(char *path) {
 
   TaskControlBlock *current_task = processor_current_task();
 
-  char app_name[MAX_APP_NAME_LENGTH];
+  char app_name[NAME_LENGTH_LIMIT + 1];
   copy_byte_buffer(processor_current_user_token(), (uint8_t *)app_name,
-                   (uint8_t *)path, MAX_APP_NAME_LENGTH, FROM_USER);
+                   (uint8_t *)path, NAME_LENGTH_LIMIT + 1, FROM_USER);
 
-  uint8_t *data = loader_get_app_data_by_name(app_name);
-  size_t size = loader_get_app_size_by_name(app_name);
+  static uint8_t data[MAX_APP_SIZE];
+  size_t size;
   TaskControlBlock *new_task;
+  OSInode *inode = inode_open_file(path, O_RDONLY);
 
-  if (data) {
+  if (inode) {
+    size = inode_read_all(inode, data);
     new_task = task_control_block_spawn(current_task, data, size);
+    new_task->elf_inode = inode;
     task_manager_add_task(new_task);
     return (int64_t)new_task->pid;
   } else {

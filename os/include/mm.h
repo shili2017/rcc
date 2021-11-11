@@ -95,7 +95,6 @@ typedef struct {
 // mm.c
 void mm_init();
 void mm_free();
-void mm_remap_test();
 
 // address.c
 void vpn_indexes(VirtPageNum vpn, uint64_t *idx);

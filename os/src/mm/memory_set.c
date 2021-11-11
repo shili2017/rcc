@@ -189,6 +189,22 @@ static void memory_set_new_kernel() {
   map_area.map_type = MAP_IDENTICAL;
   map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
   memory_set_push(memory_set, &map_area, NULL, 0);
+
+  info("mapping memory-mapped registers\n");
+  for (uint64_t i = 0; i < MMIO_NUM; i++) {
+    map_area.vpn_range.l = page_floor((PhysAddr)MMIO[i][0]);
+    map_area.vpn_range.r = page_ceil((PhysAddr)(MMIO[i][0] + MMIO[i][1]));
+    map_area.map_type = MAP_IDENTICAL;
+    map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
+    memory_set_push(memory_set, &map_area, NULL, 0);
+  }
+
+  info("mapping plic\n");
+  map_area.vpn_range.l = page_floor((PhysAddr)PLIC);
+  map_area.vpn_range.r = page_ceil((PhysAddr)(PLIC + 0x400000));
+  map_area.map_type = MAP_IDENTICAL;
+  map_area.map_perm = MAP_PERM_R | MAP_PERM_W;
+  memory_set_push(memory_set, &map_area, NULL, 0);
 }
 
 void memory_set_from_elf(MemorySet *memory_set, uint8_t *elf_data,

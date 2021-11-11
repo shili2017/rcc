@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define SYSCALL_DUP 24
+#define SYSCALL_OPEN 56
 #define SYSCALL_CLOSE 57
 #define SYSCALL_PIPE 59
 #define SYSCALL_READ 63
@@ -21,6 +23,8 @@
 #define SYSCALL_MAILREAD 401
 #define SYSCALL_MAILWRITE 402
 
+int64_t dup(uint64_t fd);
+int64_t open(char *path, uint32_t flags);
 int64_t close(uint64_t fd);
 int64_t pipe(uint64_t *pipe);
 int64_t read(uint64_t rd, char *buf, uint64_t len);

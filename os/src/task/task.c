@@ -1,16 +1,23 @@
 #include "task.h"
-#include "loader.h"
+#include "fcntl.h"
+#include "fs.h"
+#include "log.h"
 
 static TaskControlBlock INITPROC;
 
 void task_init() {
   pid_allocator_init();
   task_manager_init();
-  task_control_block_new(&INITPROC, loader_get_app_data_by_name("initproc"),
-                         loader_get_app_size_by_name("initproc"));
-}
 
-void task_add_initproc() { task_manager_add_task(&INITPROC); }
+  static uint8_t initproc_elf[MAX_APP_SIZE];
+  INITPROC.elf_inode = inode_open_file("initproc", O_RDONLY);
+  if (!INITPROC.elf_inode) {
+    panic("Fail to create initproc\n");
+  }
+  uint64_t initproc_elf_size = inode_read_all(INITPROC.elf_inode, initproc_elf);
+  task_control_block_new(&INITPROC, initproc_elf, initproc_elf_size);
+  task_manager_add_task(&INITPROC);
+}
 
 void task_suspend_current_and_run_next() {
   // There must be an application running.

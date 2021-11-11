@@ -1,6 +1,7 @@
 #include <stdint.h>
 
-#include "loader.h"
+#include "drivers.h"
+#include "fs.h"
 #include "log.h"
 #include "task.h"
 #include "timer.h"
@@ -21,15 +22,13 @@ void main() {
 
   mm_init();
 
-  mm_remap_test();
-
   trap_init();
 
-  loader_init_and_list_apps();
+  plic_init();
+
+  inode_root_init();
 
   task_init();
-
-  task_add_initproc();
 
   trap_enable_timer_interrupt();
 

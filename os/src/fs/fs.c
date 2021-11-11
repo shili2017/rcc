@@ -5,7 +5,7 @@
 #include "task.h"
 
 int64_t stdin_read(char *buf, uint64_t len) {
-  assert(len == 1, "file_read len != 1\n");
+  assert(len == 1);
 
   // busy loop
   uint64_t c;
@@ -26,8 +26,9 @@ int64_t stdin_read(char *buf, uint64_t len) {
 }
 
 int64_t stdout_write(char *buf, uint64_t len) {
-  static uint8_t stdout_write_buf[1024];
+  static uint8_t stdout_write_buf[FS_BUFFER_SIZE];
 
+  len = MIN(len, FS_BUFFER_SIZE);
   copy_byte_buffer(processor_current_user_token(), stdout_write_buf,
                    (uint8_t *)buf, len, FROM_USER);
   for (uint64_t i = 0; i < len; i++) {

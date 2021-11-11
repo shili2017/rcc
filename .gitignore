@@ -1,3 +1,6 @@
 build/
 .vscode/
 os/src/link_app.S
+fs.img
+efs-fuse/efs-fuse
+user/efs-fuse
