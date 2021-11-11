@@ -19,10 +19,7 @@ void read_block(BlockCache *b) {
     perror("lseek");
     exit(1);
   }
-  if (read(BLOCK_FILE, b->cache, BLOCK_SZ) != BLOCK_SZ) {
-    perror("read");
-    exit(1);
-  }
+  read(BLOCK_FILE, b->cache, BLOCK_SZ);
 }
 
 void write_block(BlockCache *b) {
@@ -30,10 +27,32 @@ void write_block(BlockCache *b) {
     perror("lseek");
     exit(1);
   }
+  // write(BLOCK_FILE, b->cache, BLOCK_SZ);
   if (write(BLOCK_FILE, b->cache, BLOCK_SZ) != BLOCK_SZ) {
-    perror("read");
+    perror("write");
     exit(1);
   }
+}
+
+static char APP_NAME_BUF[512];
+
+char *get_app_name(char *path) {
+  char *app;
+  strcpy(APP_NAME_BUF, path);
+  app = APP_NAME_BUF;
+  for (int64_t i = strlen(app) - 1; i >= 0; i--) {
+    if (app[i] == '/') {
+      app = app + i + 1;
+      break;
+    }
+  }
+  for (int64_t i = 0; i < strlen(app); i++) {
+    if (app[i] == '.') {
+      app[i] = 0;
+      break;
+    }
+  }
+  return app;
 }
 
 int main(int argc, char *argv[]) {
@@ -61,7 +80,6 @@ int main(int argc, char *argv[]) {
   Inode *root_inode = &ROOT_INODE;
   efs_root_inode(root_inode, efs);
 
-  char app_name_buf[512];
   char *app;
   char *all_data;
   FILE *host_file;
@@ -70,20 +88,7 @@ int main(int argc, char *argv[]) {
 
   for (uint64_t i = 2; i < argc; i++) {
     // process app name
-    strcpy(app_name_buf, argv[i]);
-    app = app_name_buf;
-    for (int64_t i = strlen(app) - 1; i >= 0; i--) {
-      if (app[i] == '/') {
-        app = app + i + 1;
-        break;
-      }
-    }
-    for (int64_t i = 0; i < strlen(app); i++) {
-      if (app[i] == '.') {
-        app[i] = 0;
-        break;
-      }
-    }
+    app = get_app_name(argv[i]);
 
     // load app data from host file system
     host_file = fopen(argv[i], "rb");
@@ -100,6 +105,8 @@ int main(int argc, char *argv[]) {
 
     // create a file in efs
     assert(inode_create(root_inode, app, &inode) == 0);
+    printf("inode = %ld offset = %ld size = %ld\n", inode.block_id,
+           inode.block_offset, host_file_size);
 
     // write data to efs
     inode_write_at(&inode, 0, (uint8_t *)all_data, host_file_size);
@@ -109,6 +116,7 @@ int main(int argc, char *argv[]) {
 
   // list apps
   uint64_t ls_len = inode_ls_len(root_inode);
+  printf("#app = %ld\n", ls_len);
   char **apps = malloc(ls_len * sizeof(char *));
   for (uint64_t i = 0; i < ls_len; i++) {
     apps[i] = malloc(NAME_LENGTH_LIMIT + 1);

@@ -97,6 +97,7 @@ int64_t inode_create(Inode *inode, char *name, Inode *inode_created) {
   block_cache_release(bc);
 
   bc = block_cache_get(inode->block_id, inode->block_device);
+  bc->modified = true;
   root_inode = (DiskInode *)(bc->cache + inode->block_offset);
   // append file in the dirent
   uint64_t file_count = root_inode->size / DIRENT_SZ;
